@@ -1,8 +1,8 @@
 use crate::ShardManagerContainer;
+use log::info;
 use serenity::framework::standard::{macros::command, CommandResult};
 use serenity::model::prelude::*;
 use serenity::prelude::*;
-use log::info;
 
 #[command]
 #[owners_only]

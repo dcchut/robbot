@@ -1,21 +1,32 @@
 #![feature(async_closure)]
 
+use std::{collections::HashSet, env, sync::Arc};
+
 use dotenv;
 use log::info;
 use serenity::{
-    client::{bridge::gateway::ShardManager, Client},
-    framework::standard::{macros::group, StandardFramework},
-    prelude::{EventHandler, TypeMapKey},
+    client::bridge::gateway::ShardManager,
+    framework::standard::{
+        help_commands,
+        macros::{group, help},
+        Args, CommandGroup, CommandResult, HelpOptions, StandardFramework,
+    },
+    model::{channel::Message, id::UserId},
+    prelude::EventHandler,
     utils::Mutex,
 };
-use std::{collections::HashSet, env, sync::Arc};
+use serenity::{
+    client::{Client, Context},
+    prelude::TypeMapKey,
+};
 
-use commands::quit::*;
+use commands::{countdown::*, quit::*};
 
 mod commands;
 
 // Our custom event handler
 struct Handler;
+
 impl EventHandler for Handler {}
 
 // Keep a handle to our shard manager
@@ -26,8 +37,20 @@ impl TypeMapKey for ShardManagerContainer {
 }
 
 #[group]
-#[commands(quit)]
+#[commands(quit, countdown)]
 struct General;
+
+#[help]
+async fn my_help(
+    context: &mut Context,
+    msg: &Message,
+    args: Args,
+    help_options: &'static HelpOptions,
+    groups: &[&'static CommandGroup],
+    owners: HashSet<UserId>,
+) -> CommandResult {
+    help_commands::with_embeds(context, msg, args, help_options, groups, owners).await
+}
 
 #[tokio::main]
 async fn main() {
@@ -66,7 +89,8 @@ async fn main() {
         .with_framework(
             StandardFramework::new()
                 .configure(|c| c.owners(owners).prefix("~"))
-                .group(&GENERAL_GROUP),
+                .group(&GENERAL_GROUP)
+                .help(&MY_HELP),
         )
         .await;
 
