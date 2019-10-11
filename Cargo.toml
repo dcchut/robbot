@@ -1,0 +1,24 @@
+[package]
+name = "robbot"
+version = "0.1.0"
+authors = ["Robert Usher <266585+dcchut@users.noreply.github.com>"]
+edition = "2018"
+
+[dependencies.serenity]
+features = ["framework", "standard_framework"]
+path = "../serenity/"
+
+[dependencies.tokio]
+version = "0.2.0-alpha.6"
+
+[dependencies.log]
+version = "0.4"
+
+[dependencies.env_logger]
+version = "0.6"
+
+[dependencies.dotenv]
+version = "0.14"
+
+[dependencies.chrono]
+version = "0.4"
