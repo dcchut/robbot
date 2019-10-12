@@ -25,4 +25,7 @@ version = "0.4"
 
 [dependencies.diesel]
 version = "1.0"
-features = ["sqlite", "extras"]
+features = ["sqlite", "chrono"]
+
+[dependencies.chrono-humanize]
+version = "0.0.11"
