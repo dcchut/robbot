@@ -3,50 +3,34 @@
 #[macro_use]
 extern crate diesel;
 
-use std::{collections::HashSet, env, sync::Arc};
+use std::{env, sync::Arc};
 
+use diesel::{Connection, SqliteConnection};
 use dotenv;
-use log::info;
 use serenity::{
-    client::bridge::gateway::ShardManager,
     client::Client,
     framework::standard::{macros::group, StandardFramework},
-    prelude::{EventHandler, TypeMapKey},
+    prelude::EventHandler,
     utils::Mutex,
 };
 
 use commands::{countdown::*, help::*, quit::*};
-use diesel::{Connection, SqliteConnection};
-use serenity::model::id::UserId;
+
+use crate::containers::{
+    ApplicationInfoContainer, ShardManagerContainer, SqliteConnectionContainer,
+};
+use std::collections::HashSet;
 
 mod commands;
+mod containers;
 mod models;
 mod schema;
+mod utils;
 
 // Our custom event handler
 struct Handler;
 
 impl EventHandler for Handler {}
-
-// Keep a handle to our shard manager
-struct ShardManagerContainer;
-
-impl TypeMapKey for ShardManagerContainer {
-    type Value = Arc<Mutex<ShardManager>>;
-}
-
-// Keep a handle to our sqlite connection
-struct SqliteConnectionContainer;
-
-impl TypeMapKey for SqliteConnectionContainer {
-    type Value = Arc<Mutex<SqliteConnection>>;
-}
-
-struct OwnersContainer;
-
-impl TypeMapKey for OwnersContainer {
-    type Value = UserId;
-}
 
 #[group]
 #[commands(quit, countdown)]
@@ -61,7 +45,7 @@ async fn main() {
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
 
     let conn = SqliteConnection::establish(&database_url)
-        .expect(&format!("Error connecting to {}", database_url));
+        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url));
 
     // Login with a bot token from the environment
     let mut client = Client::new(&env::var("DISCORD_TOKEN").expect("token"), Handler)
@@ -69,36 +53,32 @@ async fn main() {
         .expect("Error creating client");
 
     // Get the current owners of the bot
-    let (owners, owner_id) = match client
+    let (owners, current_application_info) = match client
         .cache_and_http
         .http
         .get_current_application_info()
         .await
-        {
-            Ok(info) => {
-                let mut set = HashSet::new();
-                info!("{} set as bot owner", info.owner.name);
-                set.insert(info.owner.id);
+    {
+        Ok(info) => {
+            let mut owners = HashSet::new();
+            owners.insert(info.owner.id);
 
-                (set, info.owner.id)
-            }
-            Err(why) => panic!("Couldn't get application info: {:?}", why),
-        };
+            (owners, info)
+        }
+        Err(why) => panic!("Couldn't get application info: {:?}", why),
+    };
 
-    // Store a reference to the shard manager in our client data
     {
         let mut data = client.data.write().await;
         data.insert::<ShardManagerContainer>(Arc::clone(&client.shard_manager));
         data.insert::<SqliteConnectionContainer>(Arc::new(Mutex::new(conn)));
-        data.insert::<OwnersContainer>(owner_id);
+        data.insert::<ApplicationInfoContainer>(current_application_info);
     }
-
-
 
     client
         .with_framework(
             StandardFramework::new()
-                .configure(|c| c.owners(owners).prefix("~"))
+                .configure(|c| c.prefix("~").owners(owners))
                 .group(&GENERAL_GROUP)
                 .help(&MY_HELP),
         )

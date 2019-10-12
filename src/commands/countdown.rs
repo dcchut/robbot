@@ -1,97 +1,98 @@
-use crate::models::{Countdown, NewCountdown};
-use crate::{SqliteConnectionContainer, OwnersContainer};
-use chrono::{TimeZone, Utc, DateTime};
-use chrono_humanize::HumanTime;
-use diesel::prelude::*;
+use crate::containers::{ApplicationInfoContainer, SqliteConnectionContainer};
+use crate::models::{get_countdowns, get_first_countdown, insert_countdown};
+use crate::utils::invalid_command;
+use chrono::{DateTime, Utc};
 use log::error;
-use serenity::framework::standard::{macros::command, CommandResult, Args};
-use serenity::model::prelude::*;
-use serenity::prelude::*;
-use serenity::utils::MessageBuilder;
+use serenity::client::Context;
+use serenity::framework::standard::{macros::command, Args, CommandResult};
+use serenity::model::channel::Message;
 
 async fn add_countdown(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     let data = ctx.data.read().await;
 
-    // is this user an owner?
-    if let Some(owner_id) = data.get::<OwnersContainer>() {
-        if &msg.author.id == owner_id {
-            if let Ok(target) = args.single_quoted::<String>() {
-                // Attempt to parse the date argument
-                if let Ok(dt) = target.parse::<DateTime<Utc>>() {
-                    // get the db connection
-                    if let Some(conn) = data.get::<SqliteConnectionContainer>() {
-                        let new_countdown = NewCountdown {
-                            end: dt.timestamp() as i32,
-                            active: true
-                        };
+    // For now, only the application owner can add a countdown
+    if let Some(application_info) = data.get::<ApplicationInfoContainer>() {
+        if application_info.owner.id != msg.author.id {
+            // Yikes, borrow checker.
+            std::mem::drop(data);
 
-                        let conn = conn.lock().await;
+            return invalid_command(ctx, msg).await;
+        }
+    }
 
-                        if let Err(_) = diesel::insert_into(crate::schema::countdowns::table)
-                            .values(&new_countdown)
-                            .execute(&*conn) {
-                            error!("Unable to insert new countdown!");
-                        }
-                    } else {
-                        error!("Unable to get SqliteConnectionContainer");
-                    }
+    if let Ok(dt) = args.single_quoted::<DateTime<Utc>>() {
+        // Get the DB connection
+        match data.get::<SqliteConnectionContainer>() {
+            Some(conn) => {
+                if insert_countdown(dt.timestamp() as i32, conn).await {
+                    let _ = msg.react(&ctx, "👍").await;
                 } else {
-                    let mut builder = MessageBuilder::new();
-                    let response = builder
-                        .push_line("Invalid date format!")
-                        .push("Example format: ")
-                        .push_italic("2014-11-28T21:00:09-07:00")
-                        .push(".")
-                        .build();
-
-
-                    let _ = msg.reply(&ctx, response).await;
+                    error!("Unable to insert countdown with dt {}", dt);
                 }
             }
-        }
+            _ => {
+                error!("Unable to get SqliteConnectionContainer");
+            }
+        };
+    } else {
+        // User specified an invalid date format
+        let _ = msg
+            .reply(
+                &ctx,
+                "Invalid date format!\nExample format: _2014-11-28T21:00:09-07:00_.",
+            )
+            .await;
     }
 
     Ok(())
 }
 
-async fn get_latest_countdown(ctx: &mut Context, msg: &Message) -> CommandResult {
+async fn get_next_countdown(ctx: &mut Context, msg: &Message) -> CommandResult {
     let data = ctx.data.read().await;
 
     if let Some(conn) = data.get::<SqliteConnectionContainer>() {
-        use crate::schema::countdowns::dsl::*;
+        let current_dt = Utc::now();
 
-        let conn = conn.lock().await;
-
-        let curr_dt = Utc::now();
-        let curr_timestamp = curr_dt.timestamp() as i32;
-
-        let results = countdowns
-            .filter(active.eq(true))
-            .filter(end.ge(curr_timestamp))
-            .order(id.desc())
-            .first::<Countdown>(&*conn)
-            .optional()?;
-
-        // Find the most recently created countdown
-        if let Some(countdown) = results {
-            let end_dt = Utc.timestamp(countdown.end as i64, 0);
-
-            // How long until the countdown activates?
-            let human_difference = format!("{:#}", HumanTime::from(end_dt - curr_dt));
-
-            let mut builder = MessageBuilder::new();
-            let response = builder
-                .push("The next session is ")
-                .push(human_difference)
-                .push(".")
-                .build();
-
-            let _ = msg.reply(&ctx, response).await;
-        } else {
-            let _ = msg
-                .reply(&ctx, "There are no currently active countdowns!")
-                .await;
+        match get_first_countdown(&current_dt, conn).await {
+            Some(cd) => {
+                let _ = msg.reply(&ctx, cd.as_pretty_string(&current_dt)).await;
+            }
+            None => {
+                let _ = msg
+                    .reply(&ctx, "There are no currently active countdowns!")
+                    .await;
+            }
         }
+    } else {
+        error!("Could not get SqliteConnection");
+    }
+
+    Ok(())
+}
+
+async fn get_countdown_list(ctx: &mut Context, msg: &Message) -> CommandResult {
+    let data = ctx.data.read().await;
+
+    if let Some(conn) = data.get::<SqliteConnectionContainer>() {
+        let current_dt = Utc::now();
+
+        // Get the 5 most recent countdowns
+        let human_countdowns = get_countdowns(5, &current_dt, conn)
+            .await
+            .into_iter()
+            .map(|cd| format!("  - {}", cd.as_pretty_string(&current_dt)))
+            .collect::<Vec<_>>();
+
+        let response = if human_countdowns.is_empty() {
+            String::from("There are no currently active countdowns!")
+        } else {
+            format!(
+                "Currently active countdowns:\n{}",
+                human_countdowns.join("\n")
+            )
+        };
+
+        let _ = msg.reply(&ctx, response).await;
     } else {
         error!("Could not get SqliteConnection");
     }
@@ -102,14 +103,12 @@ async fn get_latest_countdown(ctx: &mut Context, msg: &Message) -> CommandResult
 #[command]
 async fn countdown(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     if let Ok(mode) = args.single::<String>() {
-        // add mode?
-        if &mode == "add" {
-            add_countdown(ctx, msg, args).await
-        } else {
-            let _ = msg.reply(&ctx, "Invalid mode specified").await;
-            Ok(())
+        match mode.as_str() {
+            "add" => add_countdown(ctx, msg, args).await,
+            "list" => get_countdown_list(ctx, msg).await,
+            _ => invalid_command(ctx, msg).await,
         }
     } else {
-        get_latest_countdown(ctx, msg).await
+        get_next_countdown(ctx, msg).await
     }
 }
