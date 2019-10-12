@@ -6,7 +6,8 @@ edition = "2018"
 
 [dependencies.serenity]
 features = ["framework", "standard_framework"]
-path = "../serenity/"
+git = "https://github.com/dcchut/serenity"
+branch = "serenity-async-await"
 
 [dependencies.tokio]
 version = "0.2.0-alpha.6"
