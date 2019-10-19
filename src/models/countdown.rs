@@ -1,13 +1,12 @@
 use std::sync::Arc;
 
+use crate::schema::countdowns;
 use chrono::{DateTime, TimeZone, Utc};
 use chrono_humanize::HumanTime;
 use diesel::prelude::*;
 use diesel::{RunQueryDsl, SqliteConnection};
 use serenity::utils::Mutex;
 use std::ops::Sub;
-
-use super::schema::countdowns;
 
 #[derive(Queryable)]
 pub struct Countdown {

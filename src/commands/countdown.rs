@@ -1,5 +1,5 @@
 use crate::containers::{ApplicationInfoContainer, SqliteConnectionContainer};
-use crate::models::{get_countdowns, get_first_countdown, insert_countdown};
+use crate::models::countdown::{get_countdowns, get_first_countdown, insert_countdown};
 use crate::utils::invalid_command;
 use chrono::{DateTime, Utc};
 use log::error;
