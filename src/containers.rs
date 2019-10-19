@@ -1,8 +1,10 @@
+use dcc_scryfall::SfClient;
 use diesel::SqliteConnection;
 use serenity::client::bridge::gateway::ShardManager;
 use serenity::model::prelude::CurrentApplicationInfo;
 use serenity::prelude::TypeMapKey;
 use serenity::utils::Mutex;
+use serenity::AsyncRwLock;
 use std::sync::Arc;
 
 // Keep a handle to our shard manager
@@ -23,4 +25,10 @@ pub struct ApplicationInfoContainer;
 
 impl TypeMapKey for ApplicationInfoContainer {
     type Value = CurrentApplicationInfo;
+}
+
+pub struct SfClientContainer;
+
+impl TypeMapKey for SfClientContainer {
+    type Value = Arc<AsyncRwLock<SfClient>>;
 }

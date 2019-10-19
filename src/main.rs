@@ -12,13 +12,15 @@ use serenity::{
     framework::standard::{macros::group, StandardFramework},
     prelude::EventHandler,
     utils::Mutex,
+    AsyncRwLock,
 };
 
-use commands::{countdown::*, help::*, quit::*};
+use commands::{countdown::*, help::*, mtg::*, quit::*};
 
 use crate::containers::{
-    ApplicationInfoContainer, ShardManagerContainer, SqliteConnectionContainer,
+    ApplicationInfoContainer, SfClientContainer, ShardManagerContainer, SqliteConnectionContainer,
 };
+use dcc_scryfall::SfClient;
 use std::collections::HashSet;
 
 mod commands;
@@ -36,6 +38,10 @@ impl EventHandler for Handler {}
 #[commands(quit, countdown)]
 struct General;
 
+#[group]
+#[commands(mtg)]
+struct Mtg;
+
 #[tokio::main]
 async fn main() {
     dotenv::dotenv().ok();
@@ -46,6 +52,8 @@ async fn main() {
 
     let conn = SqliteConnection::establish(&database_url)
         .unwrap_or_else(|_| panic!("Error connecting to {}", database_url));
+
+    let sfclient = SfClient::new();
 
     // Login with a bot token from the environment
     let mut client = Client::new(&env::var("DISCORD_TOKEN").expect("token"), Handler)
@@ -73,6 +81,7 @@ async fn main() {
         data.insert::<ShardManagerContainer>(Arc::clone(&client.shard_manager));
         data.insert::<SqliteConnectionContainer>(Arc::new(Mutex::new(conn)));
         data.insert::<ApplicationInfoContainer>(current_application_info);
+        data.insert::<SfClientContainer>(Arc::new(AsyncRwLock::new(sfclient)));
     }
 
     client
@@ -80,6 +89,7 @@ async fn main() {
             StandardFramework::new()
                 .configure(|c| c.prefix("~").owners(owners))
                 .group(&GENERAL_GROUP)
+                .group(&MTG_GROUP)
                 .help(&MY_HELP),
         )
         .await;
