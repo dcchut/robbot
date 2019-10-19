@@ -5,6 +5,7 @@ use serenity::model::prelude::*;
 use serenity::prelude::*;
 
 #[command]
+#[owners_only]
 async fn quit(ctx: &mut Context, msg: &Message) -> CommandResult {
     {
         info!("Received shutdown command from {}", msg.author.name);
