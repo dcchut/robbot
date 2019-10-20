@@ -1,10 +1,11 @@
 use crate::containers::{SfClientContainer, SqliteConnectionContainer};
-use crate::models::card::{get_card, insert_card, NewCard};
+use crate::models::card::{get_card, insert_card, Card, NewCard};
 use crate::models::card_lookup::{insert_card_lookup, search_card_lookups, NewCardLookup};
 use serenity::{
     client::Context,
     framework::standard::{macros::command, Args, CommandResult},
     model::channel::Message,
+    utils::MessageBuilder,
 };
 
 async fn mtg_help(ctx: &mut Context, msg: &Message) -> CommandResult {
@@ -13,78 +14,70 @@ async fn mtg_help(ctx: &mut Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
-async fn mtg_card(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
-    // our search query
-    let query = args.rest().to_lowercase();
+async fn load_card(ctx: &mut Context, query: &str) -> Result<Card, ()> {
+    let data = ctx.data.read().await;
 
-    let mut retrieved_card = None;
+    if let Some(conn) = data.get::<SqliteConnectionContainer>() {
+        // First attempt to search the sqlite cache for this card
+        if let Some(cached_card) = search_card_lookups(&query, conn).await {
+            return Ok(cached_card);
+        } else {
+            // Load the card using the scryfall API
+            if let Some(sfclient) = data.get::<SfClientContainer>() {
+                let sfclient = sfclient.read().await;
+                // We have to use ? here to avoid holding a Box<dyn Error> across an await point
+                let card = sfclient.card_named(true, &query).await.map_err(|e| ())?;
 
-    {
-        let data = ctx.data.read().await;
+                // Is this card in the DB?
+                if let Some(db_card) = get_card(&card.gameplay.name, conn).await {
+                    let card_lookup = NewCardLookup {
+                        search_term: String::from(query),
+                        card_id: db_card.id,
+                    };
 
-        if let Some(conn) = data.get::<SqliteConnectionContainer>() {
-            // First attempt to search the sqlite cache for this card
-            if let Some(cached_card) = search_card_lookups(&query, conn).await {
-                retrieved_card = Some(cached_card);
-            } else {
-                // Load the card using the scryfall API
-                if let Some(sfclient) = data.get::<SfClientContainer>() {
-                    let sfclient = sfclient.read().await;
-                    // We have to use ? here to avoid holding a Box<dyn Error> across an await point
-                    let card = sfclient.card_named(true, &query).await?;
+                    insert_card_lookup(&card_lookup, conn).await;
 
-                    // Is this card in the DB?
-                    if let Some(db_card) = get_card(&card.gameplay.name, conn).await {
+                    return Ok(db_card);
+                } else {
+                    // Otherwise insert the card into the DB
+                    let new_card = NewCard {
+                        name: String::from(&card.gameplay.name),
+                        type_line: String::from(&card.gameplay.type_line),
+                        mana_cost: card.gameplay.mana_cost.clone(),
+                        oracle_text: card.gameplay.oracle_text.clone(),
+                        flavor_text: card.print.flavor_text.clone(),
+                        image_uri: {
+                            if let Some(uris) = &card.print.image_uris {
+                                Some(uris.border_crop.clone())
+                            } else {
+                                None
+                            }
+                        },
+                    };
+
+                    if let Some(db_card) = insert_card(&new_card, conn).await {
                         let card_lookup = NewCardLookup {
-                            search_term: query,
+                            search_term: String::from(query),
                             card_id: db_card.id,
                         };
 
                         insert_card_lookup(&card_lookup, conn).await;
 
-                        retrieved_card = Some(db_card);
-                    } else {
-                        // Otherwise insert the card into the DB
-                        let new_card = NewCard {
-                            name: String::from(&card.gameplay.name),
-                            type_line: String::from(&card.gameplay.type_line),
-                            mana_cost: card.gameplay.mana_cost.clone(),
-                            oracle_text: card.gameplay.oracle_text.clone(),
-                            flavor_text: card.print.flavor_text.clone(),
-                            image_uri: {
-                                if let Some(uris) = &card.print.image_uris {
-                                    Some(uris.border_crop.clone())
-                                } else {
-                                    None
-                                }
-                            },
-                        };
-
-                        if let Some(db_card) = insert_card(&new_card, conn).await {
-                            let card_lookup = NewCardLookup {
-                                search_term: query,
-                                card_id: db_card.id,
-                            };
-
-                            insert_card_lookup(&card_lookup, conn).await;
-
-                            retrieved_card = Some(db_card);
-                        }
+                        return Ok(db_card);
                     }
                 }
             }
         }
     }
 
-    fn unwrap_or_empty(v: &Option<String>) -> &str {
-        if let Some(inner) = v {
-            inner.as_str()
-        } else {
-            ""
-        }
-    }
+    Err(())
+}
 
-    if let Some(card) = retrieved_card {
+async fn mtg_card(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
+    // our search query
+    let query = args.rest().to_lowercase();
+
+    if let Ok(card) = load_card(ctx, &query).await {
         // Create an embed for this card
         let _ = msg
             .channel_id
@@ -98,7 +91,12 @@ async fn mtg_card(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult
                     }
 
                     e.field("Type:", &card.type_line, true);
-                    e.field("Mana cost:", unwrap_or_empty(&card.mana_cost), true);
+
+                    if let Some(mana_cost) = &card.mana_cost {
+                        if !mana_cost.is_empty() {
+                            e.field("Mana cost:", mana_cost, true);
+                        }
+                    }
 
                     if let Some(oracle_text) = &card.oracle_text {
                         // Double space the oracle text so it appears correctly
@@ -119,6 +117,49 @@ async fn mtg_card(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult
                 m
             })
             .await;
+    } else {
+        let mut suggestions = None;
+
+        {
+            // Otherwise attempt to get an autocomplete for the search term
+            // TODO: factor this into a load suggestions fn
+            let data = ctx.data.read().await;
+
+            if let Some(sfclient) = data.get::<SfClientContainer>() {
+                let sfclient = sfclient.read().await;
+
+                if let Ok(_suggestions) = sfclient.card_autocomplete(&query).await {
+                    if !_suggestions.data.is_empty() {
+                        suggestions = Some(_suggestions);
+                    }
+                }
+            }
+        }
+
+        if let Some(suggestions) = suggestions {
+            let _ = msg
+                .channel_id
+                .send_message(ctx, |m| {
+                    let mut builder = MessageBuilder::new();
+                    builder.push_bold_line("I can't let you do that Dave - perhaps you meant one of the following:");
+
+                    let mut ix = false;
+
+                    for suggestion in suggestions.data {
+                        if ix {
+                            builder.push(", ");
+                        } else {
+                            ix = true;
+                        }
+                        builder.push_italic_safe(suggestion);
+                    }
+
+                    m.content(builder.build());
+
+                    m
+                })
+                .await;
+        }
     }
 
     Ok(())

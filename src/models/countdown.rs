@@ -8,7 +8,7 @@ use diesel::{RunQueryDsl, SqliteConnection};
 use serenity::utils::Mutex;
 use std::ops::Sub;
 
-#[derive(Queryable)]
+#[derive(Queryable, Debug, Clone)]
 pub struct Countdown {
     pub id: i32,
     pub end: i32,

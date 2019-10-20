@@ -4,7 +4,7 @@ use diesel::{RunQueryDsl, SqliteConnection};
 use serenity::utils::Mutex;
 use std::sync::Arc;
 
-#[derive(Queryable)]
+#[derive(Queryable, Debug, Clone)]
 pub struct Card {
     pub id: i32,
     pub name: String,

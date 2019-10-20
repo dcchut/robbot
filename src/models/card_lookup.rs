@@ -5,7 +5,7 @@ use diesel::{RunQueryDsl, SqliteConnection};
 use serenity::utils::Mutex;
 use std::sync::Arc;
 
-#[derive(Queryable)]
+#[derive(Queryable, Debug, Clone)]
 pub struct CardLookup {
     pub id: i32,
     pub search_term: String,
