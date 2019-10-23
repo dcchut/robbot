@@ -9,7 +9,7 @@ git = "https://github.com/seanmonstar/reqwest"
 features = ["json"]
 
 [dependencies.dcc-scryfall]
-path = "../dcc-scryfall/"
+git = "https://github.com/dcchut/dcc-scryfall"
 
 [dependencies.serenity]
 features = ["framework", "standard_framework"]

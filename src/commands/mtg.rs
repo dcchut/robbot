@@ -26,7 +26,7 @@ async fn load_card(ctx: &mut Context, query: &str) -> Result<Card, ()> {
             if let Some(sfclient) = data.get::<SfClientContainer>() {
                 let sfclient = sfclient.read().await;
                 // We have to use ? here to avoid holding a Box<dyn Error> across an await point
-                let card = sfclient.card_named(true, &query).await.map_err(|e| ())?;
+                let card = sfclient.card_named(true, &query).await.map_err(|_e| ())?;
 
                 // Is this card in the DB?
                 if let Some(db_card) = get_card(&card.gameplay.name, conn).await {
