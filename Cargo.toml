@@ -1,8 +1,12 @@
 [package]
 name = "robbot"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Robert Usher <266585+dcchut@users.noreply.github.com>"]
 edition = "2018"
+
+[dependencies.libsqlite3-sys]
+version = "0.16"
+features = ["bundled"]
 
 [dependencies.reqwest]
 git = "https://github.com/seanmonstar/reqwest"
@@ -23,10 +27,10 @@ version = "0.2.0-alpha.6"
 version = "0.4"
 
 [dependencies.env_logger]
-version = "0.6"
+version = "0.7"
 
 [dependencies.dotenv]
-version = "0.14"
+version = "0.15"
 
 [dependencies.chrono]
 version = "0.4"

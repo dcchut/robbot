@@ -73,10 +73,7 @@ async fn load_card(ctx: &mut Context, query: &str) -> Result<Card, ()> {
     Err(())
 }
 
-async fn mtg_card(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
-    // our search query
-    let query = args.rest().to_lowercase();
-
+async fn card_search(ctx: &mut Context, msg: &Message, query: &str) -> bool {
     if let Ok(card) = load_card(ctx, &query).await {
         // Create an embed for this card
         let _ = msg
@@ -117,7 +114,17 @@ async fn mtg_card(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult
                 m
             })
             .await;
+        true
     } else {
+        false
+    }
+}
+
+async fn mtg_card(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
+    // our search query
+    let query = args.rest().to_lowercase();
+
+    if !card_search(ctx, msg, &query).await {
         let mut suggestions = None;
 
         {
@@ -127,25 +134,33 @@ async fn mtg_card(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult
 
             if let Some(sfclient) = data.get::<SfClientContainer>() {
                 let sfclient = sfclient.read().await;
+                let _suggestions = sfclient.card_autocomplete(&query).await?;
 
-                if let Ok(_suggestions) = sfclient.card_autocomplete(&query).await {
-                    if !_suggestions.data.is_empty() {
-                        suggestions = Some(_suggestions);
-                    }
+                if !_suggestions.data.is_empty() {
+                    suggestions = Some(_suggestions.data);
                 }
             }
         }
 
         if let Some(suggestions) = suggestions {
+            if suggestions.len() == 1 {
+                // Special case when we have a single suggestions
+                if card_search(ctx, msg, &suggestions[0]).await {
+                    return Ok(());
+                }
+            }
+
             let _ = msg
                 .channel_id
                 .send_message(ctx, |m| {
                     let mut builder = MessageBuilder::new();
-                    builder.push_bold_line("I can't let you do that Dave - perhaps you meant one of the following:");
+                    builder.push_bold_line(
+                        "I can't let you do that Dave - perhaps you meant one of the following:",
+                    );
 
                     let mut ix = false;
 
-                    for suggestion in suggestions.data {
+                    for suggestion in suggestions {
                         if ix {
                             builder.push(", ");
                         } else {

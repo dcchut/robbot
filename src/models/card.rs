@@ -52,21 +52,18 @@ pub async fn insert_card(new_card: &NewCard, conn: &Arc<Mutex<SqliteConnection>>
 
     let conn = conn.lock().await;
 
-    let inserted_card = conn
-        .transaction(|| {
-            let inserted_count = diesel::insert_into(cards)
-                .values(new_card)
-                .execute(&*conn)?;
+    conn.transaction(|| {
+        let inserted_count = diesel::insert_into(cards)
+            .values(new_card)
+            .execute(&*conn)?;
 
-            if inserted_count != 1 {
-                return Ok(None);
-            }
+        if inserted_count != 1 {
+            return Ok(None);
+        }
 
-            cards.order(id.desc()).first(&*conn).optional()
-        })
-        .unwrap_or_else(|_| None);
-
-    inserted_card
+        cards.order(id.desc()).first(&*conn).optional()
+    })
+    .unwrap_or_else(|_| None)
 }
 
 /// Returns a card by its name
