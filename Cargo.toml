@@ -19,6 +19,7 @@ git = "https://github.com/dcchut/dcc-scryfall"
 features = ["framework", "standard_framework"]
 git = "https://github.com/dcchut/serenity"
 branch = "serenity-async-await"
+version = "0.7.2"
 
 [dependencies.tokio]
 version = "0.2.0-alpha.6"
