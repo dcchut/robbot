@@ -1,6 +1,6 @@
 [package]
 name = "robbot"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Robert Usher <266585+dcchut@users.noreply.github.com>"]
 edition = "2018"
 
