@@ -1,12 +1,13 @@
+use std::ops::Sub;
 use std::sync::Arc;
+use std::sync::Mutex;
 
-use crate::schema::countdowns;
 use chrono::{DateTime, TimeZone, Utc};
 use chrono_humanize::HumanTime;
-use diesel::prelude::*;
 use diesel::{RunQueryDsl, SqliteConnection};
-use serenity::utils::Mutex;
-use std::ops::Sub;
+use diesel::prelude::*;
+
+use crate::schema::countdowns;
 
 #[derive(Queryable, Debug, Clone)]
 pub struct Countdown {
@@ -39,7 +40,7 @@ pub async fn insert_countdown(timestamp: i32, conn: &Arc<Mutex<SqliteConnection>
         active: true,
     };
 
-    let conn = conn.lock().await;
+    let conn = conn.lock().expect("Unable to acquire mutex");
 
     // In practice this _should_ never error
     diesel::insert_into(crate::schema::countdowns::table)
@@ -67,12 +68,14 @@ pub async fn get_countdowns(
     // TODO: figure out a solution for SQLITE only taking i32's here
     let timestamp = dt.timestamp() as i32;
 
+    let conn = conn.lock().expect("Unable to acquire mutex");
+
     countdowns
         .filter(active.eq(true))
         .filter(end.ge(timestamp))
         .order(end.asc())
         .limit(limit)
-        .load::<Countdown>(&*conn.lock().await)
+        .load::<Countdown>(&*conn)
         .unwrap_or_else(|_| {
             panic!(
                 "get_countdowns with limit={}, dt={} failed to query DB",

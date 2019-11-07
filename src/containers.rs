@@ -1,34 +1,33 @@
-use dcc_scryfall::SfClient;
+use std::sync::Arc;
+use std::sync::Mutex;
+
 use diesel::SqliteConnection;
 use serenity::client::bridge::gateway::ShardManager;
 use serenity::model::prelude::CurrentApplicationInfo;
 use serenity::prelude::TypeMapKey;
-use serenity::utils::Mutex;
-use serenity::AsyncRwLock;
-use std::sync::Arc;
 
-// Keep a handle to our shard manager
-pub struct ShardManagerContainer;
+use crate::gateway::ScryfallGateway;
+
+pub(crate) struct ShardManagerContainer;
 
 impl TypeMapKey for ShardManagerContainer {
-    type Value = Arc<Mutex<ShardManager>>;
+    type Value = Arc<serenity::utils::Mutex<ShardManager>>;
 }
 
-// Keep a handle to our sqlite connection
-pub struct SqliteConnectionContainer;
+pub(crate) struct SqliteConnectionContainer;
 
 impl TypeMapKey for SqliteConnectionContainer {
     type Value = Arc<Mutex<SqliteConnection>>;
 }
 
-pub struct ApplicationInfoContainer;
+pub(crate) struct ApplicationInfoContainer;
 
 impl TypeMapKey for ApplicationInfoContainer {
     type Value = CurrentApplicationInfo;
 }
 
-pub struct SfClientContainer;
+pub(crate) struct GatewayContainer;
 
-impl TypeMapKey for SfClientContainer {
-    type Value = Arc<AsyncRwLock<SfClient>>;
+impl TypeMapKey for GatewayContainer {
+    type Value = ScryfallGateway;
 }

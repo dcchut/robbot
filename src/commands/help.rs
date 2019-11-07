@@ -1,11 +1,12 @@
+use std::collections::HashSet;
+
 use serenity::{
     client::Context,
     framework::standard::{
-        help_commands, macros::help, Args, CommandGroup, CommandResult, HelpOptions,
+        Args, CommandGroup, CommandResult, help_commands, HelpOptions, macros::help,
     },
     model::{channel::Message, id::UserId},
 };
-use std::collections::HashSet;
 
 #[help]
 async fn my_help(

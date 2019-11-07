@@ -1,11 +1,12 @@
-use crate::containers::{ApplicationInfoContainer, SqliteConnectionContainer};
-use crate::models::countdown::{get_countdowns, get_first_countdown, insert_countdown};
-use crate::utils::invalid_command;
 use chrono::{DateTime, Utc};
 use log::error;
 use serenity::client::Context;
-use serenity::framework::standard::{macros::command, Args, CommandResult};
+use serenity::framework::standard::{Args, CommandResult, macros::command};
 use serenity::model::channel::Message;
+
+use crate::containers::{ApplicationInfoContainer, SqliteConnectionContainer};
+use crate::models::countdown::{get_countdowns, get_first_countdown, insert_countdown};
+use crate::utils::invalid_command;
 
 async fn add_countdown(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     let data = ctx.data.read().await;

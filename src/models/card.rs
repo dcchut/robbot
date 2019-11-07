@@ -1,8 +1,6 @@
+use diesel::{Insertable, Queryable};
+
 use crate::schema::cards;
-use diesel::prelude::*;
-use diesel::{RunQueryDsl, SqliteConnection};
-use serenity::utils::Mutex;
-use std::sync::Arc;
 
 #[derive(Queryable, Debug, Clone)]
 pub struct Card {
@@ -44,39 +42,4 @@ pub struct NewCard {
     pub oracle_text: Option<String>,
     pub flavor_text: Option<String>,
     pub image_uri: Option<String>,
-}
-
-/// Inserts a new card into the DB
-pub async fn insert_card(new_card: &NewCard, conn: &Arc<Mutex<SqliteConnection>>) -> Option<Card> {
-    use crate::schema::cards::dsl::*;
-
-    let conn = conn.lock().await;
-
-    conn.transaction(|| {
-        let inserted_count = diesel::insert_into(cards)
-            .values(new_card)
-            .execute(&*conn)?;
-
-        if inserted_count != 1 {
-            return Ok(None);
-        }
-
-        cards.order(id.desc()).first(&*conn).optional()
-    })
-    .unwrap_or_else(|_| None)
-}
-
-/// Returns a card by its name
-pub async fn get_card(query: &str, conn: &Arc<Mutex<SqliteConnection>>) -> Option<Card> {
-    use crate::schema::cards::dsl::*;
-
-    if query.is_empty() {
-        return None;
-    }
-
-    cards
-        .filter(name.eq(query))
-        .first::<Card>(&*conn.lock().await)
-        .optional()
-        .unwrap_or_else(|_| None)
 }

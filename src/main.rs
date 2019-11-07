@@ -4,27 +4,28 @@
 extern crate diesel;
 
 use std::{env, sync::Arc};
+use std::collections::HashSet;
+use std::sync::Mutex;
 
+use dcc_scryfall::SfClient;
 use diesel::{Connection, SqliteConnection};
 use dotenv;
 use serenity::{
     client::Client,
     framework::standard::{macros::group, StandardFramework},
     prelude::EventHandler,
-    utils::Mutex,
-    AsyncRwLock,
 };
 
 use commands::{countdown::*, help::*, mtg::*, quit::*};
 
 use crate::containers::{
-    ApplicationInfoContainer, SfClientContainer, ShardManagerContainer, SqliteConnectionContainer,
+    ApplicationInfoContainer, GatewayContainer, ShardManagerContainer, SqliteConnectionContainer,
 };
-use dcc_scryfall::SfClient;
-use std::collections::HashSet;
+use crate::gateway::{ScryfallGateway, SqliteCardCache};
 
 mod commands;
 mod containers;
+mod gateway;
 mod models;
 mod schema;
 mod utils;
@@ -50,10 +51,16 @@ async fn main() {
     // Establish a DB connection
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
 
-    let conn = SqliteConnection::establish(&database_url)
-        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url));
+    let conn = Arc::new(Mutex::new(
+        SqliteConnection::establish(&database_url)
+            .unwrap_or_else(|_| panic!("Error connecting to {}", database_url)),
+    ));
+    let cache = SqliteCardCache::new(&conn);
 
     let sfclient = SfClient::new();
+
+    // Construct our gateway object
+    let gateway = ScryfallGateway::new(sfclient, cache);
 
     // Login with a bot token from the environment
     let mut client = Client::new(&env::var("DISCORD_TOKEN").expect("token"), Handler)
@@ -66,22 +73,22 @@ async fn main() {
         .http
         .get_current_application_info()
         .await
-    {
-        Ok(info) => {
-            let mut owners = HashSet::new();
-            owners.insert(info.owner.id);
+        {
+            Ok(info) => {
+                let mut owners = HashSet::new();
+                owners.insert(info.owner.id);
 
-            (owners, info)
-        }
-        Err(why) => panic!("Couldn't get application info: {:?}", why),
-    };
+                (owners, info)
+            }
+            Err(why) => panic!("Couldn't get application info: {:?}", why),
+        };
 
     {
         let mut data = client.data.write().await;
         data.insert::<ShardManagerContainer>(Arc::clone(&client.shard_manager));
-        data.insert::<SqliteConnectionContainer>(Arc::new(Mutex::new(conn)));
+        data.insert::<SqliteConnectionContainer>(conn);
         data.insert::<ApplicationInfoContainer>(current_application_info);
-        data.insert::<SfClientContainer>(Arc::new(AsyncRwLock::new(sfclient)));
+        data.insert::<GatewayContainer>(gateway);
     }
 
     client
