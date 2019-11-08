@@ -1,11 +1,9 @@
-#![feature(async_closure)]
-
 #[macro_use]
 extern crate diesel;
 
-use std::{env, sync::Arc};
 use std::collections::HashSet;
 use std::sync::Mutex;
+use std::{env, sync::Arc};
 
 use dcc_scryfall::SfClient;
 use diesel::{Connection, SqliteConnection};
@@ -73,15 +71,15 @@ async fn main() {
         .http
         .get_current_application_info()
         .await
-        {
-            Ok(info) => {
-                let mut owners = HashSet::new();
-                owners.insert(info.owner.id);
+    {
+        Ok(info) => {
+            let mut owners = HashSet::new();
+            owners.insert(info.owner.id);
 
-                (owners, info)
-            }
-            Err(why) => panic!("Couldn't get application info: {:?}", why),
-        };
+            (owners, info)
+        }
+        Err(why) => panic!("Couldn't get application info: {:?}", why),
+    };
 
     {
         let mut data = client.data.write().await;

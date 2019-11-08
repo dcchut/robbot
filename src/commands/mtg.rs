@@ -1,6 +1,6 @@
 use serenity::{
     client::Context,
-    framework::standard::{Args, CommandResult, macros::command},
+    framework::standard::{macros::command, Args, CommandResult},
     model::channel::Message,
     utils::MessageBuilder,
 };

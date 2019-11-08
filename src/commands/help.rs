@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use serenity::{
     client::Context,
     framework::standard::{
-        Args, CommandGroup, CommandResult, help_commands, HelpOptions, macros::help,
+        help_commands, macros::help, Args, CommandGroup, CommandResult, HelpOptions,
     },
     model::{channel::Message, id::UserId},
 };

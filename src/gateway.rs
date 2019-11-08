@@ -3,8 +3,8 @@ use std::sync::Mutex;
 
 use chrono::Utc;
 use dcc_scryfall::SfClient;
-use diesel::{QueryDsl, SqliteConnection};
 use diesel::prelude::*;
+use diesel::{QueryDsl, SqliteConnection};
 use serenity::AsyncRwLock;
 
 use crate::models::card::{Card, NewCard};
@@ -106,7 +106,7 @@ impl CardCache for SqliteCardCache {
 
             cards.order(id.desc()).first(&*conn).optional()
         })
-            .unwrap_or_else(|_| None)
+        .unwrap_or_else(|_| None)
     }
 }
 

@@ -4,8 +4,8 @@ use std::sync::Mutex;
 
 use chrono::{DateTime, TimeZone, Utc};
 use chrono_humanize::HumanTime;
-use diesel::{RunQueryDsl, SqliteConnection};
 use diesel::prelude::*;
+use diesel::{RunQueryDsl, SqliteConnection};
 
 use crate::schema::countdowns;
 

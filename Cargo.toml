@@ -1,6 +1,6 @@
 [package]
 name = "robbot"
-version = "0.1.2"
+version = "0.2.0"
 authors = ["Robert Usher <266585+dcchut@users.noreply.github.com>"]
 edition = "2018"
 
@@ -19,7 +19,7 @@ git = "https://github.com/dcchut/dcc-scryfall"
 features = ["framework", "standard_framework"]
 git = "https://github.com/dcchut/serenity"
 branch = "serenity-async-await"
-version = "0.7.2"
+version = "0.8"
 
 [dependencies.tokio]
 version = "0.2.0-alpha.6"

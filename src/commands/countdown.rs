@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use log::error;
 use serenity::client::Context;
-use serenity::framework::standard::{Args, CommandResult, macros::command};
+use serenity::framework::standard::{macros::command, Args, CommandResult};
 use serenity::model::channel::Message;
 
 use crate::containers::{ApplicationInfoContainer, SqliteConnectionContainer};
