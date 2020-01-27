@@ -1,6 +1,6 @@
 [package]
 name = "robbot"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Robert Usher <266585+dcchut@users.noreply.github.com>"]
 edition = "2018"
 
@@ -9,7 +9,7 @@ version = "0.9.1"
 features = ["bundled"]
 
 [dependencies.reqwest]
-git = "https://github.com/seanmonstar/reqwest"
+version = "0.10"
 features = ["json"]
 
 [dependencies.dcc-scryfall]
@@ -21,7 +21,7 @@ git = "https://github.com/dcchut/serenity"
 branch = "serenity-async-await"
 
 [dependencies.tokio]
-version = "0.2.4"
+version = "0.2"
 
 [dependencies.log]
 version = "0.4"
