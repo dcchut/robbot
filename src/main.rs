@@ -14,7 +14,7 @@ use serenity::{
     prelude::EventHandler,
 };
 
-use commands::{countdown::*, help::*, mtg::*, quit::*};
+use commands::{countdown::*, help::*, mtg::*, quit::*, normalcdf::*};
 
 use crate::containers::{
     ApplicationInfoContainer, GatewayContainer, ShardManagerContainer, SqliteConnectionContainer,
@@ -34,7 +34,7 @@ struct Handler;
 impl EventHandler for Handler {}
 
 #[group]
-#[commands(quit, countdown)]
+#[commands(quit, countdown, normalcdf)]
 struct General;
 
 #[group]
