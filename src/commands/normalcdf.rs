@@ -6,14 +6,18 @@ use serenity::model::channel::Message;
 
 #[command]
 async fn normalcdf(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
-    if let Some(Ok(level)) = args.current().map(str::parse::<f64>) {
-        let cumulative_prob = {
+    if let Ok(level) = args.single::<f64>() {
+        let desc = {
             let gaussian = Gaussian::new(0.0, 1.0);
-            gaussian.distribution(level)
-        };
-        let reply = format!("P(Z <= {}) = {}", level, cumulative_prob);
 
-        msg.reply(ctx, reply).await?;
+            if let Ok(end) = args.single::<f64>() {
+                format!("P({} <= Z <= {}) = {}", level, end, gaussian.distribution(end) - gaussian.distribution(level))
+            } else {
+                format!("P(Z <= {}) = {}", level, gaussian.distribution(level))
+            }
+        };
+
+        msg.reply(ctx, desc).await?;
     };
 
     Ok(())
