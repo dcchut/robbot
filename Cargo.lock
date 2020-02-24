@@ -215,7 +215,7 @@ dependencies = [
 [[package]]
 name = "command_attr"
 version = "0.1.7"
-source = "git+https://github.com/dcchut/serenity?branch=serenity-async-await#204c15ebc08d70f630edaefbd4f16aa6e7ffa555"
+source = "git+https://github.com/dcchut/serenity?branch=serenity-async-await#a5afc09ee8cc6c43576c13b567e377207b1d5300"
 dependencies = [
  "proc-macro2 1.0.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "quote 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1251,7 +1251,7 @@ dependencies = [
 [[package]]
 name = "serenity"
 version = "0.8.0"
-source = "git+https://github.com/dcchut/serenity?branch=serenity-async-await#204c15ebc08d70f630edaefbd4f16aa6e7ffa555"
+source = "git+https://github.com/dcchut/serenity?branch=serenity-async-await#a5afc09ee8cc6c43576c13b567e377207b1d5300"
 dependencies = [
  "async-recursion 0.1.2 (git+https://github.com/dcchut/async-recursion)",
  "async-std 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
