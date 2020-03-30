@@ -28,8 +28,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "async-recursion"
-version = "0.1.2"
-source = "git+https://github.com/dcchut/async-recursion#5c93841323ef8418e48482400393f1e09d055f1f"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "proc-macro2 1.0.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "quote 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -220,7 +220,7 @@ dependencies = [
 [[package]]
 name = "command_attr"
 version = "0.1.7"
-source = "git+https://github.com/dcchut/serenity?branch=serenity-async-await#345d2c921c9db3cc6ffad9c74d71d41fb1dddc2d"
+source = "git+https://github.com/dcchut/serenity?branch=serenity-async-await#d9d6d9affa12082198928ec444be8e2cf781afad"
 dependencies = [
  "proc-macro2 1.0.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "quote 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1256,9 +1256,9 @@ dependencies = [
 [[package]]
 name = "serenity"
 version = "0.8.0"
-source = "git+https://github.com/dcchut/serenity?branch=serenity-async-await#345d2c921c9db3cc6ffad9c74d71d41fb1dddc2d"
+source = "git+https://github.com/dcchut/serenity?branch=serenity-async-await#d9d6d9affa12082198928ec444be8e2cf781afad"
 dependencies = [
- "async-recursion 0.1.2 (git+https://github.com/dcchut/async-recursion)",
+ "async-recursion 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "async-std 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "async-stream 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "async-trait 0.1.22 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1713,7 +1713,7 @@ dependencies = [
 "checksum ahash 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)" = "0989268a37e128d4d7a8028f1c60099430113fdbc70419010601ce51a228e4fe"
 "checksum aho-corasick 0.7.6 (registry+https://github.com/rust-lang/crates.io-index)" = "58fb5e95d83b38284460a5fda7d6470aa0b8844d283a0b614b8535e880800d2d"
 "checksum anyhow 1.0.26 (registry+https://github.com/rust-lang/crates.io-index)" = "7825f6833612eb2414095684fcf6c635becf3ce97fe48cf6421321e93bfbd53c"
-"checksum async-recursion 0.1.2 (git+https://github.com/dcchut/async-recursion)" = "<none>"
+"checksum async-recursion 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "394b41acee32ce53306b9abfa8ad4df10b73b3c003e5c5da4720cca722010878"
 "checksum async-std 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "0bf6039b315300e057d198b9d3ab92ee029e31c759b7f1afae538145e6f18a3e"
 "checksum async-stream 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "58982858be7540a465c790b95aaea6710e5139bf8956b1d1344d014fa40100b0"
 "checksum async-stream-impl 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "393356ed99aa7bff0ac486dde592633b83ab02bd254d8c209d5b9f1d0f533480"
