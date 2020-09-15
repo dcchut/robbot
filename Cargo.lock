@@ -203,7 +203,7 @@ dependencies = [
 
 [[package]]
 name = "chrono-humanize"
-version = "0.0.11"
+version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "chrono 0.4.15 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1147,7 +1147,7 @@ name = "robbot"
 version = "0.3.0"
 dependencies = [
  "chrono 0.4.15 (registry+https://github.com/rust-lang/crates.io-index)",
- "chrono-humanize 0.0.11 (registry+https://github.com/rust-lang/crates.io-index)",
+ "chrono-humanize 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "dcc-scryfall 0.2.0 (git+https://github.com/dcchut/dcc-scryfall)",
  "diesel 1.4.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "dotenv 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1750,7 +1750,7 @@ dependencies = [
 "checksum cc 1.0.50 (registry+https://github.com/rust-lang/crates.io-index)" = "95e28fa049fda1c330bcf9d723be7663a899c4679724b34c81e9f5a326aab8cd"
 "checksum cfg-if 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)" = "4785bdd1c96b2a846b2bd7cc02e86b6b3dbf14e7e53446c4f54c92a361040822"
 "checksum chrono 0.4.15 (registry+https://github.com/rust-lang/crates.io-index)" = "942f72db697d8767c22d46a598e01f2d3b475501ea43d0db4f16d90259182d0b"
-"checksum chrono-humanize 0.0.11 (registry+https://github.com/rust-lang/crates.io-index)" = "eb2ff48a655fe8d2dae9a39e66af7fd8ff32a879e8c4e27422c25596a8b5e90d"
+"checksum chrono-humanize 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "724b37c11ac4ebed1168de52e9e36594f4a6592ef2ea7528b9aae0bdf56fd0f0"
 "checksum cloudabi 0.0.3 (registry+https://github.com/rust-lang/crates.io-index)" = "ddfc5b9aa5d4507acaf872de71051dfd0e309860e88966e1051e462a077aac4f"
 "checksum command_attr 0.2.0 (git+https://github.com/dcchut/serenity?branch=serenity-async-await)" = "<none>"
 "checksum const-random 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)" = "2f1af9ac737b2dd2d577701e59fd09ba34822f6f2ebdb30a7647405d9e55e16a"
