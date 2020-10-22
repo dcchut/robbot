@@ -21,7 +21,7 @@ git = "https://github.com/dcchut/serenity"
 branch = "serenity-async-await"
 
 [dependencies.tokio]
-version = "0.2"
+version = "0.3"
 
 [dependencies.log]
 version = "0.4"
