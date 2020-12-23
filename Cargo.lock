@@ -1283,7 +1283,7 @@ dependencies = [
  "probability",
  "reqwest",
  "serenity",
- "tokio 0.3.6",
+ "tokio 1.0.0",
 ]
 
 [[package]]
@@ -1549,9 +1549,9 @@ dependencies = [
 
 [[package]]
 name = "tokio"
-version = "0.3.6"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "720ba21c25078711bf456d607987d95bce90f7c3bea5abe1db587862e7a1e87c"
+checksum = "9f4bfdcbd00fa893ac0549b38aa27080636a0104b0d0c38475a99439405e1df8"
 dependencies = [
  "autocfg 1.0.0",
  "pin-project-lite 0.2.0",
