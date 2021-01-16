@@ -11,7 +11,12 @@ async fn normalcdf(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandR
             let gaussian = Gaussian::new(0.0, 1.0);
 
             if let Ok(end) = args.single::<f64>() {
-                format!("P({} <= Z <= {}) = {}", level, end, gaussian.distribution(end) - gaussian.distribution(level))
+                format!(
+                    "P({} <= Z <= {}) = {}",
+                    level,
+                    end,
+                    gaussian.distribution(end) - gaussian.distribution(level)
+                )
             } else {
                 format!("P(Z <= {}) = {}", level, gaussian.distribution(level))
             }
