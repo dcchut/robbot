@@ -29,9 +29,7 @@ async fn run_code(code: String, ctx: &mut Context, msg: &Message) -> CommandResu
 
 #[command]
 async fn py(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
-    let code = format!(
-        "print({})", args.rest().trim()
-    );
+    let code = format!("print({})", args.rest().trim());
     run_code(code, ctx, msg).await
 }
 

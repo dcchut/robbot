@@ -14,7 +14,7 @@ use serenity::{
     prelude::EventHandler,
 };
 
-use commands::{countdown::*, help::*, mtg::*, normalcdf::*, quit::*, rust::*, python::*};
+use commands::{countdown::*, help::*, mtg::*, normalcdf::*, python::*, quit::*, rust::*};
 
 use crate::containers::{
     ApplicationInfoContainer, GatewayContainer, ShardManagerContainer, SqliteConnectionContainer,
