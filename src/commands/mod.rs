@@ -4,3 +4,4 @@ pub mod mtg;
 pub mod normalcdf;
 pub mod quit;
 pub mod rust;
+pub mod python;
