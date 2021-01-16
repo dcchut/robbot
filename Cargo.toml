@@ -13,14 +13,15 @@ version = "0.10"
 features = ["json"]
 
 [dependencies.dcc-scryfall]
-path = "../dcc-scryfall"
+git = "https://github.com/dcchut/dcc-scryfall"
 
 [dependencies.code-sandbox]
-path = "../code-sandbox"
+git = "https://github.com/dcchut/code-sandbox"
 
 [dependencies.serenity]
 features = ["framework", "standard_framework"]
-path = "../serenity"
+git = "https://github.com/dcchut/serenity"
+branch = "tokio_update"
 
 [dependencies.tokio]
 version = "1.0"

@@ -350,6 +350,7 @@ dependencies = [
 [[package]]
 name = "code-sandbox"
 version = "0.1.0"
+source = "git+https://github.com/dcchut/code-sandbox#21d41a8fbb333e57c3db59fd4ee2d6b86cddf7a2"
 dependencies = [
  "env_logger 0.7.1",
  "lazy_static",
@@ -365,6 +366,7 @@ dependencies = [
 [[package]]
 name = "command_attr"
 version = "0.2.0"
+source = "git+https://github.com/dcchut/serenity?branch=tokio_update#57a70993bd9d096fd74cc23ccae5aaed66dabc00"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -458,6 +460,7 @@ dependencies = [
 [[package]]
 name = "dcc-scryfall"
 version = "0.2.0"
+source = "git+https://github.com/dcchut/dcc-scryfall#a1c244a4af7a627b502a4de613a3de0a5b555fc8"
 dependencies = [
  "reqwest 0.10.10",
  "serde",
@@ -1826,6 +1829,7 @@ dependencies = [
 [[package]]
 name = "serenity"
 version = "0.8.1"
+source = "git+https://github.com/dcchut/serenity?branch=tokio_update#57a70993bd9d096fd74cc23ccae5aaed66dabc00"
 dependencies = [
  "async-recursion",
  "async-std",
