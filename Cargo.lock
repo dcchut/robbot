@@ -350,7 +350,7 @@ dependencies = [
 [[package]]
 name = "code-sandbox"
 version = "0.1.0"
-source = "git+https://github.com/dcchut/code-sandbox#21d41a8fbb333e57c3db59fd4ee2d6b86cddf7a2"
+source = "git+https://github.com/dcchut/code-sandbox#9d1dae09bfe22adc44b4f0676a0a4ecc8844e51b"
 dependencies = [
  "env_logger 0.7.1",
  "lazy_static",
@@ -1733,7 +1733,7 @@ dependencies = [
  "libsqlite3-sys",
  "log",
  "probability",
- "reqwest 0.10.10",
+ "reqwest 0.11.0",
  "serenity",
  "tokio 1.0.2",
 ]
