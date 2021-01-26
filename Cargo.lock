@@ -372,9 +372,9 @@ dependencies = [
 [[package]]
 name = "dcc-scryfall"
 version = "0.2.0"
-source = "git+https://github.com/dcchut/dcc-scryfall#7ccc2a74773d2cb42a9269e985eea343aa98581a"
+source = "git+https://github.com/dcchut/dcc-scryfall#b1cd449e5c62b0b2d465e7bc9b7bc3c863295ca0"
 dependencies = [
- "reqwest 0.10.10",
+ "reqwest 0.11.0",
  "serde",
  "serde_json",
 ]
