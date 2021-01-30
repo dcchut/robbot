@@ -7,7 +7,6 @@ use std::{env, sync::Arc};
 
 use dcc_scryfall::SfClient;
 use diesel::{Connection, SqliteConnection};
-use dotenv;
 use serenity::{
     client::Client,
     framework::standard::{macros::group, StandardFramework},

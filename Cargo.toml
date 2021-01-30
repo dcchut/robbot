@@ -21,7 +21,7 @@ git = "https://github.com/dcchut/code-sandbox"
 [dependencies.serenity]
 features = ["framework", "standard_framework"]
 git = "https://github.com/dcchut/serenity"
-branch = "tokio_update"
+branch = "serenity-async-await"
 
 [dependencies.tokio]
 version = "1.0"

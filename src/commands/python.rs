@@ -1,4 +1,5 @@
-use code_sandbox::{Engine, ExecuteRequest, Sandbox};
+use code_sandbox::SandboxBuilder;
+
 use serenity::{
     client::Context,
     framework::standard::{macros::command, Args, CommandResult},
@@ -6,22 +7,25 @@ use serenity::{
 };
 
 async fn run_code(code: String, ctx: &mut Context, msg: &Message) -> CommandResult {
-    let sandbox = Sandbox::new()?;
-    let req = ExecuteRequest {
-        code,
-        engine: Engine::Python,
-    };
+    let mut builder = SandboxBuilder::new(
+        "dcchut/code-sandbox-python",
+        vec!["python3", "/playground/src/main.py"],
+    )?;
 
-    let response = sandbox.execute(&req).await?;
+    builder.mount("/playground/src/main.py", code)?;
 
-    let output = response.stdout.trim();
-    if output.is_empty() {
-        let err_output = response.stderr.trim();
-        if !err_output.is_empty() {
-            msg.reply(ctx, err_output).await?;
-        }
-    } else {
-        msg.reply(ctx, output).await?;
+    let sandbox = builder.build()?;
+    let result = sandbox.execute().await?;
+
+    let mut reply = result.stdout().trim_end();
+
+    if reply.is_empty() {
+        reply = result.stderr().trim_end();
+    }
+
+    // Only send a reply if we have something to say
+    if !reply.is_empty() {
+        msg.reply(ctx, reply).await?;
     }
 
     Ok(())

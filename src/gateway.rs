@@ -53,7 +53,7 @@ impl CardCache for SqliteCardCache {
             )>(&*conn)
             .map(|i| i.1)
             .optional()
-            .unwrap_or_else(|_| None)
+            .unwrap_or(None)
     }
 
     fn insert_query(&self, query: &str, card: &Card) -> bool {
@@ -87,7 +87,7 @@ impl CardCache for SqliteCardCache {
             .filter(name.eq(card_name))
             .first::<crate::models::card::Card>(&*conn)
             .optional()
-            .unwrap_or_else(|_| None)
+            .unwrap_or(None)
     }
 
     fn insert_card(&self, new_card: NewCard) -> Option<Card> {
@@ -106,7 +106,7 @@ impl CardCache for SqliteCardCache {
 
             cards.order(id.desc()).first(&*conn).optional()
         })
-        .unwrap_or_else(|_| None)
+        .unwrap_or(None)
     }
 }
 
