@@ -1,11 +1,14 @@
-FROM bitnami/minideb:latest as toolchain
+FROM bitnami/minideb:latest as base-toolchain
 
 ENV DEBIAN_FRONTEND="noninteractive"
 
 RUN apt-get update && \
-    apt-get install ca-certificates -y && \
-    update-ca-certificates && \
-    install_packages curl build-essential
+    apt-get install ca-certificates libssl-dev pkg-config -y && \
+    update-ca-certificates
+
+FROM base-toolchain as toolchain
+
+RUN install_packages curl build-essential
 
 RUN useradd -m robbot -d /robbot
 RUN usermod -p '!!' root # Disable all passwords for root
@@ -38,7 +41,7 @@ ADD --chown=robbot src /robbot/src
 RUN cargo build --release
 
 # Just the application now
-FROM bitnami/minideb:latest as runenv
+FROM base-toolchain as runenv
 WORKDIR /app
 COPY --from=sources /robbot/target/release/robbot /app/robbot
 
