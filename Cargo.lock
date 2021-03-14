@@ -407,14 +407,14 @@ dependencies = [
 
 [[package]]
 name = "diesel"
-version = "1.4.5"
+version = "1.4.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3e2de9deab977a153492a1468d1b1c0662c1cf39e5ea87d0c060ecd59ef18d8c"
+checksum = "047bfc4d5c3bd2ef6ca6f981941046113524b9a9f9a7cbdfdd7ff40f58e6f542"
 dependencies = [
  "byteorder",
  "chrono",
  "diesel_derives",
- "libsqlite3-sys 0.9.1",
+ "libsqlite3-sys",
 ]
 
 [[package]]
@@ -858,16 +858,6 @@ name = "libc"
 version = "0.2.82"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "89203f3fba0a3795506acaad8ebce3c80c0af93f994d5a1d7a0b1eeb23271929"
-
-[[package]]
-name = "libsqlite3-sys"
-version = "0.9.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0e9eb7b8e152b6a01be6a4a2917248381875758250dc3df5d46caf9250341dda"
-dependencies = [
- "pkg-config",
- "vcpkg",
-]
 
 [[package]]
 name = "libsqlite3-sys"
@@ -1395,7 +1385,7 @@ dependencies = [
  "diesel",
  "dotenv",
  "env_logger",
- "libsqlite3-sys 0.20.1",
+ "libsqlite3-sys",
  "log",
  "probability",
  "reqwest",
