@@ -5,7 +5,7 @@ authors = ["Robert Usher <266585+dcchut@users.noreply.github.com>"]
 edition = "2018"
 
 [dependencies.libsqlite3-sys]
-version = "0.20.1"
+version = "0.22.0"
 features = ["bundled"]
 
 [dependencies.reqwest]

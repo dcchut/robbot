@@ -408,7 +408,7 @@ dependencies = [
  "byteorder",
  "chrono",
  "diesel_derives",
- "libsqlite3-sys",
+ "libsqlite3-sys 0.9.1",
 ]
 
 [[package]]
@@ -855,9 +855,19 @@ checksum = "89203f3fba0a3795506acaad8ebce3c80c0af93f994d5a1d7a0b1eeb23271929"
 
 [[package]]
 name = "libsqlite3-sys"
-version = "0.20.1"
+version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "64d31059f22935e6c31830db5249ba2b7ecd54fd73a9909286f0a67aa55c2fbd"
+checksum = "0e9eb7b8e152b6a01be6a4a2917248381875758250dc3df5d46caf9250341dda"
+dependencies = [
+ "pkg-config",
+ "vcpkg",
+]
+
+[[package]]
+name = "libsqlite3-sys"
+version = "0.22.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2f6332d94daa84478d55a6aa9dbb3b305ed6500fb0cb9400cb9e1525d0e0e188"
 dependencies = [
  "cc",
  "pkg-config",
@@ -1379,7 +1389,7 @@ dependencies = [
  "diesel",
  "dotenv",
  "env_logger",
- "libsqlite3-sys",
+ "libsqlite3-sys 0.22.0",
  "log",
  "probability",
  "reqwest",
