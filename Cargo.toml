@@ -24,7 +24,7 @@ git = "https://github.com/dcchut/serenity"
 branch = "serenity-async-await"
 
 [dependencies.tokio]
-version = "1.0"
+version = "1.4"
 features = ["macros", "rt-multi-thread"]
 
 [dependencies.log]
@@ -44,7 +44,7 @@ version = "1.4"
 features = ["sqlite", "chrono"]
 
 [dependencies.chrono-humanize]
-version = "0.1.1"
+version = "0.1.2"
 
 [dependencies.probability]
 version = "0.17"
