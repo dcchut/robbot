@@ -1,23 +1,22 @@
 use std::sync::Arc;
-use std::sync::Mutex;
 
 use diesel::SqliteConnection;
 use serenity::client::bridge::gateway::ShardManager;
 use serenity::model::prelude::CurrentApplicationInfo;
-use serenity::prelude::TypeMapKey;
+use serenity::prelude::*;
 
 use crate::gateway::ScryfallGateway;
 
 pub(crate) struct ShardManagerContainer;
 
 impl TypeMapKey for ShardManagerContainer {
-    type Value = Arc<serenity::utils::Mutex<ShardManager>>;
+    type Value = Arc<Mutex<ShardManager>>;
 }
 
 pub(crate) struct SqliteConnectionContainer;
 
 impl TypeMapKey for SqliteConnectionContainer {
-    type Value = Arc<Mutex<SqliteConnection>>;
+    type Value = Arc<std::sync::Mutex<SqliteConnection>>;
 }
 
 pub(crate) struct ApplicationInfoContainer;

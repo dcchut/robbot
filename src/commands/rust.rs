@@ -5,7 +5,7 @@ use serenity::{
     model::channel::Message,
 };
 
-async fn run_code(code: String, ctx: &mut Context, msg: &Message) -> CommandResult {
+async fn run_code(code: String, ctx: &Context, msg: &Message) -> CommandResult {
     let mut builder = SandboxBuilder::new(
         "dcchut/code-sandbox-rust-stable",
         vec!["cargo", "run", "--release"],
@@ -31,7 +31,7 @@ async fn run_code(code: String, ctx: &mut Context, msg: &Message) -> CommandResu
 }
 
 #[command]
-async fn rust(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+async fn rust(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let code = format!(
         "fn main() {{\nprintln!(\"{{:?}}\", {{ {} }} );\n}}",
         args.rest()
@@ -40,7 +40,7 @@ async fn rust(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult
 }
 
 #[command]
-async fn rust_raw(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+async fn rust_raw(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let code = args.rest().to_string();
     run_code(code, ctx, msg).await
 }

@@ -1,6 +1,5 @@
 use std::ops::Sub;
 use std::sync::Arc;
-use std::sync::Mutex;
 
 use chrono::{DateTime, TimeZone, Utc};
 use chrono_humanize::HumanTime;
@@ -34,7 +33,10 @@ struct NewCountdown {
 }
 
 /// Inserts a new countdown with the given `timestamp` into the db.
-pub async fn insert_countdown(timestamp: i32, conn: &Arc<Mutex<SqliteConnection>>) -> bool {
+pub async fn insert_countdown(
+    timestamp: i32,
+    conn: &Arc<std::sync::Mutex<SqliteConnection>>,
+) -> bool {
     let new_countdown = NewCountdown {
         end: timestamp,
         active: true,
@@ -52,7 +54,7 @@ pub async fn insert_countdown(timestamp: i32, conn: &Arc<Mutex<SqliteConnection>
 /// Returns (if possible) the first countdown that would trigger after `dt`.
 pub async fn get_first_countdown(
     dt: &DateTime<Utc>,
-    conn: &Arc<Mutex<SqliteConnection>>,
+    conn: &Arc<std::sync::Mutex<SqliteConnection>>,
 ) -> Option<Countdown> {
     get_countdowns(1, dt, conn).await.pop()
 }
@@ -61,7 +63,7 @@ pub async fn get_first_countdown(
 pub async fn get_countdowns(
     limit: i64,
     dt: &DateTime<Utc>,
-    conn: &Arc<Mutex<SqliteConnection>>,
+    conn: &Arc<std::sync::Mutex<SqliteConnection>>,
 ) -> Vec<Countdown> {
     use crate::schema::countdowns::dsl::*;
 

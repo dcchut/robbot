@@ -6,7 +6,7 @@ use serenity::{
     model::channel::Message,
 };
 
-async fn run_code(code: String, ctx: &mut Context, msg: &Message) -> CommandResult {
+async fn run_code(code: String, ctx: &Context, msg: &Message) -> CommandResult {
     let mut builder = SandboxBuilder::new(
         "dcchut/code-sandbox-python",
         vec!["python3", "/playground/src/main.py"],
@@ -32,13 +32,13 @@ async fn run_code(code: String, ctx: &mut Context, msg: &Message) -> CommandResu
 }
 
 #[command]
-async fn py(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+async fn py(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let code = format!("print({})", args.rest().trim());
     run_code(code, ctx, msg).await
 }
 
 #[command]
-async fn py_raw(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+async fn py_raw(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let code = args.rest().to_string();
     run_code(code, ctx, msg).await
 }

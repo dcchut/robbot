@@ -8,7 +8,7 @@ use serenity::{
 use crate::containers::GatewayContainer;
 use crate::models::card::Card;
 
-async fn mtg_help(ctx: &mut Context, msg: &Message) -> CommandResult {
+async fn mtg_help(ctx: &Context, msg: &Message) -> CommandResult {
     let _ = msg.reply(ctx, "help").await;
 
     Ok(())
@@ -91,7 +91,7 @@ async fn display_card(ctx: &Context, msg: &Message, card: &Card) -> CommandResul
     Ok(())
 }
 
-async fn mtg_random_card(ctx: &mut Context, msg: &Message) -> CommandResult {
+async fn mtg_random_card(ctx: &Context, msg: &Message) -> CommandResult {
     let data = ctx.data.read().await;
 
     if let Some(gateway) = data.get::<GatewayContainer>() {
@@ -103,7 +103,7 @@ async fn mtg_random_card(ctx: &mut Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
-async fn mtg_card(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
+async fn mtg_card(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     // our search query
     let query = args.rest().to_lowercase();
     let data = ctx.data.read().await;
@@ -129,14 +129,14 @@ async fn mtg_card(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult
     Ok(())
 }
 
-async fn mtg_set(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult {
+async fn mtg_set(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
     let _ = msg.reply(ctx, "set").await;
 
     Ok(())
 }
 
 #[command]
-async fn mtg(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+async fn mtg(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     if args.is_empty() {
         // Return some help!
         return mtg_help(ctx, msg).await;

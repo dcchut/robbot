@@ -7,14 +7,14 @@ use crate::ShardManagerContainer;
 
 #[command]
 #[owners_only]
-async fn quit(ctx: &mut Context, msg: &Message) -> CommandResult {
+async fn quit(ctx: &Context, msg: &Message) -> CommandResult {
     {
         info!("Received shutdown command from {}", msg.author.name);
 
         let data = ctx.data.read().await;
 
         if let Some(manager) = data.get::<ShardManagerContainer>() {
-            manager.lock().await.shutdown_all();
+            manager.lock().await.shutdown_all().await;
             let _ = msg.reply(&ctx, "Shutting down!").await;
         } else {
             let _ = msg

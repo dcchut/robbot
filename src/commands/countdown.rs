@@ -8,7 +8,7 @@ use crate::containers::{ApplicationInfoContainer, SqliteConnectionContainer};
 use crate::models::countdown::{get_countdowns, get_first_countdown, insert_countdown};
 use crate::utils::invalid_command;
 
-async fn add_countdown(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+async fn add_countdown(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let data = ctx.data.read().await;
 
     // For now, only the application owner can add a countdown
@@ -26,7 +26,7 @@ async fn add_countdown(ctx: &mut Context, msg: &Message, mut args: Args) -> Comm
         match data.get::<SqliteConnectionContainer>() {
             Some(conn) => {
                 if insert_countdown(dt.timestamp() as i32, conn).await {
-                    let _ = msg.react(&ctx, "👍").await;
+                    let _ = msg.react(&*ctx, '👍').await;
                 } else {
                     error!("Unable to insert countdown with dt {}", dt);
                 }
@@ -39,7 +39,7 @@ async fn add_countdown(ctx: &mut Context, msg: &Message, mut args: Args) -> Comm
         // User specified an invalid date format
         let _ = msg
             .reply(
-                &ctx,
+                &*ctx,
                 "Invalid date format!\nExample format: _2014-11-28T21:00:09-07:00_.",
             )
             .await;
@@ -48,7 +48,7 @@ async fn add_countdown(ctx: &mut Context, msg: &Message, mut args: Args) -> Comm
     Ok(())
 }
 
-async fn get_next_countdown(ctx: &mut Context, msg: &Message) -> CommandResult {
+async fn get_next_countdown(ctx: &Context, msg: &Message) -> CommandResult {
     let data = ctx.data.read().await;
 
     if let Some(conn) = data.get::<SqliteConnectionContainer>() {
@@ -56,11 +56,11 @@ async fn get_next_countdown(ctx: &mut Context, msg: &Message) -> CommandResult {
 
         match get_first_countdown(&current_dt, conn).await {
             Some(cd) => {
-                let _ = msg.reply(&ctx, cd.as_pretty_string(&current_dt)).await;
+                let _ = msg.reply(&*ctx, cd.as_pretty_string(&current_dt)).await;
             }
             None => {
                 let _ = msg
-                    .reply(&ctx, "There are no currently active countdowns!")
+                    .reply(&*ctx, "There are no currently active countdowns!")
                     .await;
             }
         }
@@ -71,7 +71,7 @@ async fn get_next_countdown(ctx: &mut Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
-async fn get_countdown_list(ctx: &mut Context, msg: &Message) -> CommandResult {
+async fn get_countdown_list(ctx: &Context, msg: &Message) -> CommandResult {
     let data = ctx.data.read().await;
 
     if let Some(conn) = data.get::<SqliteConnectionContainer>() {
@@ -93,7 +93,7 @@ async fn get_countdown_list(ctx: &mut Context, msg: &Message) -> CommandResult {
             )
         };
 
-        let _ = msg.reply(&ctx, response).await;
+        let _ = msg.reply(&*ctx, response).await;
     } else {
         error!("Could not get SqliteConnection");
     }
@@ -102,7 +102,7 @@ async fn get_countdown_list(ctx: &mut Context, msg: &Message) -> CommandResult {
 }
 
 #[command]
-async fn countdown(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+async fn countdown(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     if let Ok(mode) = args.single::<String>() {
         match mode.as_str() {
             "add" => add_countdown(ctx, msg, args).await,

@@ -1,11 +1,10 @@
 use std::sync::Arc;
-use std::sync::Mutex;
 
 use chrono::Utc;
 use dcc_scryfall::SfClient;
 use diesel::prelude::*;
 use diesel::{QueryDsl, SqliteConnection};
-use serenity::AsyncRwLock;
+use serenity::prelude::*;
 
 use crate::models::card::{Card, NewCard};
 use crate::models::card_lookup::RawNewCardLookup;
@@ -25,11 +24,11 @@ pub(crate) trait CardCache {
 }
 
 pub(crate) struct SqliteCardCache {
-    db: Arc<Mutex<SqliteConnection>>,
+    db: Arc<std::sync::Mutex<SqliteConnection>>,
 }
 
 impl SqliteCardCache {
-    pub fn new(db: &Arc<Mutex<SqliteConnection>>) -> Self {
+    pub fn new(db: &Arc<std::sync::Mutex<SqliteConnection>>) -> Self {
         Self { db: Arc::clone(db) }
     }
 }
@@ -111,14 +110,14 @@ impl CardCache for SqliteCardCache {
 }
 
 pub(crate) struct ScryfallGateway {
-    client: Arc<AsyncRwLock<SfClient>>,
+    client: Arc<RwLock<SfClient>>,
     cache: Box<dyn CardCache + Send + Sync>,
 }
 
 impl ScryfallGateway {
     pub fn new<C: CardCache + Send + Sync + 'static>(client: SfClient, cache: C) -> Self {
         Self {
-            client: Arc::new(AsyncRwLock::new(client)),
+            client: Arc::new(RwLock::new(client)),
             cache: Box::new(cache),
         }
     }

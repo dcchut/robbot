@@ -19,13 +19,12 @@ git = "https://github.com/dcchut/dcc-scryfall"
 git = "https://github.com/dcchut/code-sandbox"
 
 [dependencies.serenity]
-features = ["framework", "standard_framework"]
-git = "https://github.com/dcchut/serenity"
-branch = "serenity-async-await"
+features = ["framework", "standard_framework", "rustls_backend"]
+version = "0.10"
 
 [dependencies.tokio]
 version = "1.4"
-features = ["macros", "rt-multi-thread"]
+features = ["macros", "rt-multi-thread", "signal"]
 
 [dependencies.log]
 version = "0.4"
