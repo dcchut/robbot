@@ -1,8 +1,8 @@
 use chrono::{DateTime, Utc};
-use log::error;
 use serenity::client::Context;
 use serenity::framework::standard::{macros::command, Args, CommandResult};
 use serenity::model::channel::Message;
+use tracing::error;
 
 use crate::containers::{ApplicationInfoContainer, SqliteConnectionContainer};
 use crate::models::countdown::{get_countdowns, get_first_countdown, insert_countdown};

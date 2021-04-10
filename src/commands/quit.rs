@@ -1,7 +1,7 @@
-use log::info;
 use serenity::framework::standard::{macros::command, CommandResult};
 use serenity::model::prelude::*;
 use serenity::prelude::*;
+use tracing::info;
 
 use crate::ShardManagerContainer;
 

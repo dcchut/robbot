@@ -13,7 +13,8 @@ use serenity::{
     prelude::*,
 };
 
-use log::info;
+use tracing::info;
+use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
 use commands::{countdown::*, help::*, mtg::*, normalcdf::*, python::*, quit::*, rust::*};
 
@@ -56,7 +57,12 @@ struct Mtg;
 #[tokio::main]
 async fn main() {
     dotenv::dotenv().ok();
-    env_logger::init();
+
+    let subscriber = FmtSubscriber::builder()
+        .with_env_filter(EnvFilter::from_default_env())
+        .finish();
+
+    tracing::subscriber::set_global_default(subscriber).expect("Failed to start the logger");
 
     // Establish a DB connection
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
