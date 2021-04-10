@@ -1,0 +1,4 @@
+CREATE TABLE rocks (
+    user_id INTEGER NOT NULL PRIMARY KEY,
+    count INTEGER NOT NULL DEFAULT 1
+)

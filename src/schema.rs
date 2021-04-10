@@ -27,6 +27,13 @@ table! {
     }
 }
 
+table! {
+    rocks (user_id) {
+        user_id -> Integer,
+        count -> Integer,
+    }
+}
+
 joinable!(card_lookups -> cards (card_id));
 
-allow_tables_to_appear_in_same_query!(card_lookups, cards, countdowns,);
+allow_tables_to_appear_in_same_query!(card_lookups, cards, countdowns, rocks,);
