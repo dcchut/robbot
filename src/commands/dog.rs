@@ -22,7 +22,7 @@ async fn dog(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
 
     let dog: RandomDog = res.json().await?;
 
-    msg.reply(&*ctx, &dog.message).await?;
+    msg.reply(ctx, &dog.message).await?;
 
     Ok(())
 }

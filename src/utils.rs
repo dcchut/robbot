@@ -4,7 +4,7 @@ use serenity::model::channel::Message;
 
 /// Used to react to user commands which are invalid in a fundamental way.
 pub async fn invalid_command(ctx: &Context, msg: &Message) -> CommandResult {
-    let _ = msg.react(&*ctx, '❌').await;
+    let _ = msg.react(ctx, '❌').await;
 
     Ok(())
 }

@@ -11,7 +11,7 @@ async fn dig(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
 
     if let Some(conn) = data.get::<SqliteConnectionContainer>() {
         let count = update_rocks(msg.author.id.0, conn).await;
-        msg.reply(&*ctx, format!("You have dug {} times", count))
+        msg.reply(ctx, format!("You have dug {} times", count))
             .await?;
     } else {
         error!("Could not get SqliteConnection");
