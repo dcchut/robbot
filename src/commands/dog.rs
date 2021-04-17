@@ -11,17 +11,26 @@ struct RandomDog {
 }
 
 #[command]
-async fn dog(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
+async fn dog(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     // Returns a random dog picture
     let client = ReqClient::new();
 
+    let url = match args.current() {
+        Some("golden") => {
+            "https://dog.ceo/api/breed/retriever/golden/images/random"
+        },
+        _ => {
+            "https://dog.ceo/api/breeds/image/random"
+        }
+    };
+
+    // Produce a random doggo
     let res = client
-        .get("https://dog.ceo/api/breeds/image/random")
+        .get(url)
         .send()
         .await?;
 
     let dog: RandomDog = res.json().await?;
-
     msg.reply(ctx, &dog.message).await?;
 
     Ok(())
