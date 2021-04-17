@@ -6,3 +6,4 @@ pub mod normalcdf;
 pub mod python;
 pub mod quit;
 pub mod rust;
+pub mod dog;
