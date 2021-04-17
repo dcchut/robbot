@@ -16,7 +16,9 @@ use serenity::{
 use tracing::info;
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
-use commands::{countdown::*, dig::*, help::*, mtg::*, normalcdf::*, python::*, quit::*, rust::*, dog::*};
+use commands::{
+    countdown::*, dig::*, dog::*, help::*, mtg::*, normalcdf::*, python::*, quit::*, rust::*,
+};
 
 use crate::containers::{
     ApplicationInfoContainer, GatewayContainer, ShardManagerContainer, SqliteConnectionContainer,

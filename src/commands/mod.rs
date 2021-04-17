@@ -1,9 +1,9 @@
 pub mod countdown;
 pub mod dig;
+pub mod dog;
 pub mod help;
 pub mod mtg;
 pub mod normalcdf;
 pub mod python;
 pub mod quit;
 pub mod rust;
-pub mod dog;
