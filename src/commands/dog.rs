@@ -16,22 +16,36 @@ async fn dog(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let client = ReqClient::new();
 
     let url = match args.current() {
-        Some("golden") => {
-            "https://dog.ceo/api/breed/retriever/golden/images/random"
-        },
-        _ => {
-            "https://dog.ceo/api/breeds/image/random"
-        }
+        Some("golden") => "https://dog.ceo/api/breed/retriever/golden/images/random",
+        _ => "https://dog.ceo/api/breeds/image/random",
     };
 
     // Produce a random doggo
-    let res = client
-        .get(url)
-        .send()
-        .await?;
+    let res = client.get(url).send().await?;
 
     let dog: RandomDog = res.json().await?;
     msg.reply(ctx, &dog.message).await?;
+
+    Ok(())
+}
+
+#[derive(Debug, Deserialize)]
+struct RandomCat {
+    url: String,
+}
+
+#[command]
+async fn cat(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
+    // Returns a random dog picture
+    let client = ReqClient::new();
+    let res = client
+        .get("https://cataas.com/cat?json=True")
+        .send()
+        .await?;
+
+    let cat: RandomCat = res.json().await?;
+    msg.reply(ctx, format!("https://cataas.com{}", &cat.url))
+        .await?;
 
     Ok(())
 }

@@ -49,7 +49,7 @@ impl EventHandler for Handler {
 }
 
 #[group]
-#[commands(quit, countdown, normalcdf, rust, rust_raw, py, py_raw, dig, dog)]
+#[commands(quit, countdown, normalcdf, rust, rust_raw, py, py_raw, dig, dog, cat)]
 struct General;
 
 #[group]
