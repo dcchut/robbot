@@ -7,6 +7,11 @@ use tracing::error;
 use crate::containers::{ApplicationInfoContainer, SqliteConnectionContainer};
 use crate::models::countdown::{get_countdowns, get_first_countdown, insert_countdown};
 use crate::utils::invalid_command;
+use serenity::model::id::GuildId;
+
+fn guild(x: Option<GuildId>) -> Option<i64> {
+    x.map(|n| n.0 as i64)
+}
 
 async fn add_countdown(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let data = ctx.data.read().await;
@@ -25,7 +30,7 @@ async fn add_countdown(ctx: &Context, msg: &Message, mut args: Args) -> CommandR
         // Get the DB connection
         match data.get::<SqliteConnectionContainer>() {
             Some(conn) => {
-                if insert_countdown(dt.timestamp() as i32, conn).await {
+                if insert_countdown(dt.timestamp() as i32, guild(msg.guild_id), conn).await {
                     let _ = msg.react(ctx, '👍').await;
                 } else {
                     error!("Unable to insert countdown with dt {}", dt);
@@ -54,7 +59,7 @@ async fn get_next_countdown(ctx: &Context, msg: &Message) -> CommandResult {
     if let Some(conn) = data.get::<SqliteConnectionContainer>() {
         let current_dt = Utc::now();
 
-        match get_first_countdown(&current_dt, conn).await {
+        match get_first_countdown(&current_dt, guild(msg.guild_id), conn).await {
             Some(cd) => {
                 let _ = msg.reply(ctx, cd.as_pretty_string(&current_dt)).await;
             }
@@ -78,7 +83,7 @@ async fn get_countdown_list(ctx: &Context, msg: &Message) -> CommandResult {
         let current_dt = Utc::now();
 
         // Get the 5 most recent countdowns
-        let human_countdowns = get_countdowns(5, &current_dt, conn)
+        let human_countdowns = get_countdowns(5, &current_dt, guild(msg.guild_id), conn)
             .await
             .into_iter()
             .map(|cd| format!("  - {}", cd.as_pretty_string(&current_dt)))

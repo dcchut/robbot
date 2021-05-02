@@ -24,6 +24,7 @@ table! {
         id -> Integer,
         end -> Integer,
         active -> Bool,
+        guild -> Nullable<BigInt>,
     }
 }
 

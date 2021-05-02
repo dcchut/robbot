@@ -8,12 +8,6 @@ use serenity::{
 use crate::containers::GatewayContainer;
 use crate::models::card::Card;
 
-async fn mtg_help(ctx: &Context, msg: &Message) -> CommandResult {
-    let _ = msg.reply(ctx, "help").await;
-
-    Ok(())
-}
-
 async fn display_suggestions(
     ctx: &Context,
     msg: &Message,
@@ -129,30 +123,13 @@ async fn mtg_card(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     Ok(())
 }
 
-async fn mtg_set(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
-    let _ = msg.reply(ctx, "set").await;
-
-    Ok(())
-}
-
 #[command]
 async fn mtg(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
-    if args.is_empty() {
-        // Return some help!
-        return mtg_help(ctx, msg).await;
-    }
-
     let _ = match args.current() {
         Some("random") => mtg_random_card(ctx, msg).await,
         Some("card") => {
             args.advance();
-
             mtg_card(ctx, msg, args).await
-        }
-        Some("set") => {
-            args.advance();
-
-            mtg_set(ctx, msg, args).await
         }
         _ => mtg_card(ctx, msg, args).await,
     };

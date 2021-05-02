@@ -13,6 +13,7 @@ pub struct Countdown {
     pub id: i32,
     pub end: i32,
     pub active: bool,
+    pub guild: Option<i64>,
 }
 
 impl Countdown {
@@ -30,16 +31,18 @@ impl Countdown {
 struct NewCountdown {
     pub end: i32,
     pub active: bool,
+    pub guild: Option<i64>,
 }
-
 /// Inserts a new countdown with the given `timestamp` into the db.
 pub async fn insert_countdown(
     timestamp: i32,
+    guild: Option<i64>,
     conn: &Arc<std::sync::Mutex<SqliteConnection>>,
 ) -> bool {
     let new_countdown = NewCountdown {
         end: timestamp,
         active: true,
+        guild,
     };
 
     let conn = conn.lock().expect("Unable to acquire mutex");
@@ -54,15 +57,17 @@ pub async fn insert_countdown(
 /// Returns (if possible) the first countdown that would trigger after `dt`.
 pub async fn get_first_countdown(
     dt: &DateTime<Utc>,
+    guild: Option<i64>,
     conn: &Arc<std::sync::Mutex<SqliteConnection>>,
 ) -> Option<Countdown> {
-    get_countdowns(1, dt, conn).await.pop()
+    get_countdowns(1, dt, guild, conn).await.pop()
 }
 
 /// Returns a list of the at most `limit` countdowns that would trigger after `dt`.
 pub async fn get_countdowns(
     limit: i64,
     dt: &DateTime<Utc>,
+    g: Option<i64>,
     conn: &Arc<std::sync::Mutex<SqliteConnection>>,
 ) -> Vec<Countdown> {
     use crate::schema::countdowns::dsl::*;
@@ -75,6 +80,7 @@ pub async fn get_countdowns(
     countdowns
         .filter(active.eq(true))
         .filter(end.ge(timestamp))
+        .filter(guild.eq(g))
         .order(end.asc())
         .limit(limit)
         .load::<Countdown>(&*conn)
