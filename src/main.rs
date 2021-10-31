@@ -27,6 +27,13 @@ use crate::gateway::{ScryfallGateway, SqliteCardCache};
 use serenity::http::Http;
 use serenity::model::event::ResumedEvent;
 use serenity::model::gateway::Ready;
+use serenity::model::id::GuildId;
+use serenity::model::interactions::application_command::{
+    ApplicationCommandInteractionData, ApplicationCommandOptionType,
+};
+use serenity::model::interactions::Interaction;
+use serenity::model::prelude::application_command::ApplicationCommandInteractionDataOption;
+use serenity::utils::MessageBuilder;
 
 mod commands;
 mod containers;
@@ -37,14 +44,203 @@ mod utils;
 
 struct Handler;
 
+fn is_subcommand<'data>(
+    data: &'data ApplicationCommandInteractionData,
+    command: &'static str,
+    sub_command: &'static str,
+) -> Option<&'data ApplicationCommandInteractionDataOption> {
+    if data.name == command {
+        if let Some(option) = data.options.get(0) {
+            if option.name == sub_command {
+                return Some(option);
+            }
+        }
+    }
+    None
+}
+
+fn get_subcommand_value<'data>(
+    data: &'data ApplicationCommandInteractionData,
+    command: &'static str,
+    sub_command: &'static str,
+) -> Option<&'data serde_json::Value> {
+    if let Some(option) = is_subcommand(data, command, sub_command) {
+        if let Some(sub_options) = option.options.get(0) {
+            return sub_options.value.as_ref();
+        }
+    }
+    None
+}
+
 #[async_trait]
 impl EventHandler for Handler {
-    async fn ready(&self, _: Context, ready: Ready) {
+    async fn ready(&self, ctx: Context, ready: Ready) {
         info!("Connected as {}", ready.user.name);
+
+        // let commands = ApplicationCommand::set_global_application_commands(&ctx.http, |commands| {
+        //     commands
+        //
+        // })
+        // .await;
+        //info!("Set the following global slash commands: {:?}", commands);
+
+        let guild = GuildId(627275384832000007);
+
+        guild
+            .create_application_command(&ctx.http, |command| {
+                command
+                    .name("mtg")
+                    .description("MTG card lookup")
+                    .create_option(|option| {
+                        option
+                            .name("random")
+                            .description("display a random card")
+                            .kind(ApplicationCommandOptionType::SubCommand)
+                    })
+                    .create_option(|option| {
+                        option
+                            .name("search")
+                            .description("search for a card")
+                            .kind(ApplicationCommandOptionType::SubCommand)
+                            .create_sub_option(|sub_option| {
+                                sub_option
+                                    .name("card")
+                                    .description("name of the card to search for")
+                                    .kind(ApplicationCommandOptionType::String)
+                                    .required(true)
+                                    .set_autocomplete(true)
+                            })
+                    })
+            })
+            .await
+            .expect("failed to create guild command");
+
+        guild
+            .create_application_command(&ctx.http, |command| {
+                command
+                    .name("welcome")
+                    .description("Welcome a user")
+                    .create_option(|option| {
+                        option
+                            .name("user")
+                            .description("The user to welcome")
+                            .kind(ApplicationCommandOptionType::User)
+                            .required(true)
+                    })
+            })
+            .await
+            .expect("failed to create guild command");
     }
 
     async fn resume(&self, _: Context, _: ResumedEvent) {
         info!("Resumed");
+    }
+
+    async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
+        match interaction {
+            Interaction::Autocomplete(interaction) => {
+                if let Some(value) = get_subcommand_value(&interaction.data, "mtg", "search") {
+                    if let Some(txt) = value.as_str() {
+                        let mut suggestions = Vec::new();
+
+                        if !txt.is_empty() {
+                            let data = ctx.data.read().await;
+                            if let Some(gateway) = data.get::<GatewayContainer>() {
+                                suggestions.extend(gateway.suggestions(txt).await);
+                            }
+                        }
+
+                        // Discord only allows us 25 suggestions, so ensure we abide by that.
+                        suggestions.truncate(25);
+
+                        let _ = interaction
+                            .create_autocomplete_response(&ctx.http, |response| {
+                                for suggestion in suggestions {
+                                    response.add_string_choice(&suggestion, &suggestion);
+                                }
+                                response
+                            })
+                            .await;
+                    }
+                }
+            }
+            Interaction::ApplicationCommand(interaction) => {
+                if let Some(value) = get_subcommand_value(&interaction.data, "mtg", "search") {
+                    if let Some(txt) = value.as_str() {
+                        let card = get_single_card(&ctx, txt).await;
+
+                        // Handle the hard case - the card they're looking for isn't here.
+                        if let Some(card) = card {
+                            let _ = interaction
+                                .create_interaction_response(&ctx.http, |response| {
+                                    response.interaction_response_data(|data| {
+                                        data.create_embed(|e| {
+                                            embed_card(e, &card);
+                                            e
+                                        })
+                                    })
+                                })
+                                .await;
+                        } else {
+                            let mut suggestions = Vec::new();
+
+                            if !txt.is_empty() {
+                                let data = ctx.data.read().await;
+                                if let Some(gateway) = data.get::<GatewayContainer>() {
+                                    suggestions.extend(gateway.suggestions(txt).await);
+                                }
+                            }
+
+                            let _ = interaction.create_interaction_response(&ctx.http, |response| {
+                                response.interaction_response_data(|data| {
+                                    data.content(
+                                        {
+                                            let mut builder = MessageBuilder::new();
+                                            builder.push_bold_line(
+                                                "I can't let you do that Dave - perhaps you meant one of the following:",
+                                            );
+
+                                            let mut ix = false;
+
+                                            for suggestion in suggestions {
+                                                if ix {
+                                                    builder.push(", ");
+                                                } else {
+                                                    ix = true;
+                                                }
+                                                builder.push_italic_safe(suggestion);
+                                            }
+
+                                            builder.build()
+                                        }
+                                    )
+                                })
+                            }).await;
+                        }
+                    }
+                }
+
+                if is_subcommand(&interaction.data, "mtg", "random").is_some() {
+                    let data = ctx.data.read().await;
+
+                    if let Some(gateway) = data.get::<GatewayContainer>() {
+                        if let Some(card) = gateway.random().await {
+                            let _ = interaction
+                                .create_interaction_response(&ctx.http, |response| {
+                                    response.interaction_response_data(|f| {
+                                        f.create_embed(|e| {
+                                            embed_card(e, &card);
+                                            e
+                                        })
+                                    })
+                                })
+                                .await;
+                        }
+                    }
+                }
+            }
+            _ => {}
+        }
     }
 }
 
@@ -80,6 +276,11 @@ async fn main() {
     // Construct our scryfall gateway object
     let gateway = ScryfallGateway::new(sfclient, cache);
 
+    let application_id: u64 = env::var("APPLICATION_ID")
+        .expect("Expected an application id in the environment")
+        .parse()
+        .expect("application id is not a valid id");
+
     let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
 
     let http = Http::new_with_token(&token);
@@ -104,6 +305,7 @@ async fn main() {
     let mut client = Client::builder(&token)
         .framework(framework)
         .event_handler(Handler)
+        .application_id(application_id)
         .await
         .expect("Err creating client");
 

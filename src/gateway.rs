@@ -168,11 +168,11 @@ impl ScryfallGateway {
                     oracle_text: card_model.gameplay.oracle_text.clone(),
                     flavor_text: card_model.print.flavor_text.clone(),
                     image_uri: {
-                        if let Some(uris) = &card_model.print.image_uris {
-                            Some(uris.border_crop.clone())
-                        } else {
-                            None
-                        }
+                        card_model
+                            .print
+                            .image_uris
+                            .as_ref()
+                            .map(|uris| uris.border_crop.clone())
                     },
                 };
 

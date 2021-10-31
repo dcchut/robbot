@@ -19,7 +19,9 @@ git = "https://github.com/dcchut/dcc-scryfall"
 git = "https://github.com/dcchut/code-sandbox"
 
 [dependencies.serenity]
-features = ["framework", "standard_framework", "rustls_backend"]
+git = "https://github.com/serenity-rs/serenity"
+branch = "current"
+features = ["framework", "standard_framework", "rustls_backend", "unstable_discord_api"]
 version = "0.10"
 
 [dependencies.tokio]
@@ -51,3 +53,6 @@ version = "0.17"
 [dependencies.serde]
 version = "1.0"
 features = ["derive"]
+
+[dependencies.serde_json]
+version = "1.0"
