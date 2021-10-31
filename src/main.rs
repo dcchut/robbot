@@ -84,7 +84,7 @@ impl EventHandler for Handler {
         // .await;
         //info!("Set the following global slash commands: {:?}", commands);
 
-        let guild = GuildId(627275384832000007);
+        let guild = GuildId(307765179373060096);
 
         guild
             .create_application_command(&ctx.http, |command| {
