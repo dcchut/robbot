@@ -2,45 +2,62 @@
 name = "robbot"
 version = "0.3.0"
 authors = ["Robert Usher <266585+dcchut@users.noreply.github.com>"]
-edition = "2018"
+edition = "2021"
 
-[dependencies.libsqlite3-sys]
-version = "0.23.2"
-features = ["bundled"]
-
-[dependencies.reqwest]
-version = "0.11"
-features = ["json"]
-
-[dependencies.dcc-scryfall]
-git = "https://github.com/dcchut/dcc-scryfall"
-
-[dependencies.serenity]
-features = ["framework", "standard_framework"]
-git = "https://github.com/dcchut/serenity"
-branch = "serenity-async-await"
-
-[dependencies.tokio]
-version = "1.16"
-
-[dependencies.log]
-version = "0.4"
-
-[dependencies.env_logger]
-version = "0.9"
-
-[dependencies.dotenv]
-version = "0.15"
+[dependencies.anyhow]
+version = "1.0"
 
 [dependencies.chrono]
 version = "0.4"
 
-[dependencies.diesel]
-version = "1.4"
-features = ["sqlite", "chrono"]
-
 [dependencies.chrono-humanize]
-version = "0.2.1"
+version = "0.2"
+
+[dependencies.code-sandbox]
+git = "https://github.com/dcchut/code-sandbox"
+
+[dependencies.dcc-scryfall]
+git = "https://github.com/dcchut/dcc-scryfall"
+
+[dependencies.dotenv]
+version = "0.15"
+
+[dependencies.envy]
+version = "0.4"
+
+[dependencies.governor]
+version = "0.4"
+
+[dependencies.once_cell]
+version = "1.9"
 
 [dependencies.probability]
 version = "0.17"
+
+[dependencies.reqwest]
+version = "0.11"
+
+[dependencies.serde]
+version = "1.0"
+features = ["derive"]
+
+[dependencies.serde_json]
+version = "1.0"
+
+[dependencies.serenity]
+version = "0.10"
+features = ["unstable_discord_api"]
+
+[dependencies.sqlx]
+version = "0.5"
+features = ["runtime-tokio-rustls", "sqlite", "macros", "chrono"]
+
+[dependencies.tokio]
+version = "1.15"
+features = ["macros", "rt-multi-thread", "signal"]
+
+[dependencies.tracing]
+version = "0.1"
+
+[dependencies.tracing-subscriber]
+version = "0.3"
