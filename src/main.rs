@@ -1,106 +1,127 @@
-#[macro_use]
-extern crate diesel;
+use crate::commands::{
+    animals::*, countdown::*, dig::*, help::*, mtg::*, probability::*, quit::*, sandboxes::*, weather::*
+};
+use crate::containers::{AnimalGatewayContainer, AppInfoContainer, CardStoreContainer, CountdownStoreContainer, NominatimClientContainer, OpenWeatherMapClientContainer, RockCounterContainer, ShardManagerContainer};
+use crate::models::cards::CardStore;
+use crate::models::countdowns::CountdownStore;
+use crate::models::rocks::RockCounter;
+use crate::models::zoo::AnimalGateway;
 
+use anyhow::Result;
+use serde::Deserialize;
+use serenity::framework::standard::macros::group;
+use serenity::framework::StandardFramework;
+use serenity::http::Http;
+use serenity::model::application::CurrentApplicationInfo;
+use serenity::model::id::UserId;
+use serenity::Client;
+use sqlx::sqlite::SqlitePoolOptions;
+use sqlx::{Pool, Sqlite};
 use std::collections::HashSet;
-use std::sync::Mutex;
-use std::{env, sync::Arc};
-
-use dcc_scryfall::SfClient;
-use diesel::{Connection, SqliteConnection};
-use dotenv;
-use serenity::{
-    client::Client,
-    framework::standard::{macros::group, StandardFramework},
-    prelude::EventHandler,
-};
-
-use commands::{countdown::*, help::*, mtg::*, normalcdf::*, quit::*};
-
-use crate::containers::{
-    ApplicationInfoContainer, GatewayContainer, ShardManagerContainer, SqliteConnectionContainer,
-};
-use crate::gateway::{ScryfallGateway, SqliteCardCache};
+use crate::models::weather::{NominatimClient, OpenWeatherMapClient};
 
 mod commands;
 mod containers;
-mod gateway;
 mod models;
-mod schema;
-mod utils;
-
-// Our custom event handler
-struct Handler;
-
-impl EventHandler for Handler {}
+mod client;
 
 #[group]
-#[commands(quit, countdown, normalcdf)]
+#[commands(countdown, dig, dog, cat, normalcdf, py, py_raw, rust, rust_raw, quit, weather)]
 struct General;
 
 #[group]
 #[commands(mtg)]
 struct Mtg;
 
-#[tokio::main]
-async fn main() {
-    dotenv::dotenv().ok();
-    env_logger::init();
+#[derive(Deserialize, Debug)]
+struct Config {
+    database_url: String,
+    discord_token: String,
+    discord_application_id: u64,
+    openweather_api_key: String,
+}
 
-    // Establish a DB connection
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+fn setup_app() -> Result<()> {
+    dotenv::dotenv().expect("Failed to load .env file");
+    tracing_subscriber::fmt::init();
 
-    let conn = Arc::new(Mutex::new(
-        SqliteConnection::establish(&database_url)
-            .unwrap_or_else(|_| panic!("Error connecting to {}", database_url)),
-    ));
-    let cache = SqliteCardCache::new(&conn);
+    Ok(())
+}
 
-    let sfclient = SfClient::new();
+async fn setup_db_pool(config: &Config) -> Result<&'static Pool<Sqlite>> {
+    let pool = SqlitePoolOptions::new()
+        .max_connections(5)
+        .connect(&config.database_url)
+        .await?;
 
-    // Construct our gateway object
-    let gateway = ScryfallGateway::new(sfclient, cache);
+    Ok(Box::leak(Box::new(pool)))
+}
 
-    // Login with a bot token from the environment
-    let mut client = Client::new(&env::var("DISCORD_TOKEN").expect("token"), Handler)
-        .await
-        .expect("Error creating client");
+async fn get_bot_info(token: &str) -> (HashSet<UserId>, CurrentApplicationInfo) {
+    let http = Http::new_with_token(token);
 
-    // Get the current owners of the bot
-    let (owners, current_application_info) = match client
-        .cache_and_http
-        .http
-        .get_current_application_info()
-        .await
-    {
+    match http.get_current_application_info().await {
         Ok(info) => {
             let mut owners = HashSet::new();
             owners.insert(info.owner.id);
-
             (owners, info)
         }
-        Err(why) => panic!("Couldn't get application info: {:?}", why),
-    };
+        Err(why) => panic!("Could not access application info: {:?}", why),
+    }
+}
 
+async fn build_client(config: &Config, pool: &'static Pool<Sqlite>) -> Client {
+    let (owners, current_app_info) = get_bot_info(&config.discord_token).await;
+
+    let framework = StandardFramework::new()
+        .configure(|c| c.owners(owners).prefix("~"))
+        .group(&GENERAL_GROUP)
+        .group(&MTG_GROUP)
+        .help(&MY_HELP);
+
+    let client = Client::builder(&config.discord_token)
+        .framework(framework)
+        .application_id(config.discord_application_id)
+        .await
+        .expect("error creating serenity client");
+
+    // Serenity could be using TypeID's for this purpose but instead requires a wrapper
+    // struct implementing TypeMapKey.  Unclear what problem motivated this choice.
     {
         let mut data = client.data.write().await;
-        data.insert::<ShardManagerContainer>(Arc::clone(&client.shard_manager));
-        data.insert::<SqliteConnectionContainer>(conn);
-        data.insert::<ApplicationInfoContainer>(current_application_info);
-        data.insert::<GatewayContainer>(gateway);
+        data.insert::<AppInfoContainer>(current_app_info);
+        data.insert::<CardStoreContainer>(CardStore::new(pool));
+        data.insert::<RockCounterContainer>(RockCounter::new(pool));
+        data.insert::<CountdownStoreContainer>(CountdownStore::new(pool));
+        data.insert::<AnimalGatewayContainer>(AnimalGateway::new());
+        data.insert::<ShardManagerContainer>(client.shard_manager.clone());
+        data.insert::<NominatimClientContainer>(NominatimClient::new());
+        data.insert::<OpenWeatherMapClientContainer>(OpenWeatherMapClient::new(&config.openweather_api_key));
     }
 
     client
-        .with_framework(
-            StandardFramework::new()
-                .configure(|c| c.prefix("~").owners(owners))
-                .group(&GENERAL_GROUP)
-                .group(&MTG_GROUP)
-                .help(&MY_HELP),
-        )
-        .await;
+}
 
-    // Start listening for events
+#[tokio::main]
+async fn main() -> Result<()> {
+    setup_app()?;
+
+    let config: Config = envy::from_env()?;
+    let pool = setup_db_pool(&config).await?;
+    let mut client = build_client(&config, pool).await;
+
+    // Set ctrl+c handler so we can shut down the running bot
+    let shard_manager = client.shard_manager.clone();
+    tokio::spawn(async move {
+        tokio::signal::ctrl_c()
+            .await
+            .expect("could not register ctrl+c handler");
+        shard_manager.lock().await.shutdown_all().await;
+    });
+
     if let Err(why) = client.start().await {
-        println!("An error occurred while running the client: {:?}", why);
+        eprintln!("client error:  {:?}", why)
     }
+
+    Ok(())
 }

@@ -1,15 +1,54 @@
-use serenity::{
-    client::Context,
-    framework::standard::{macros::command, Args, CommandResult},
-    model::channel::Message,
-    utils::MessageBuilder,
-};
+use crate::models::cards::Card;
+use crate::CardStoreContainer;
+use serenity::builder::CreateEmbed;
+use serenity::framework::standard::{macros::command, Args, CommandResult};
+use serenity::model::channel::Message;
+use serenity::prelude::*;
+use serenity::utils::MessageBuilder;
 
-use crate::containers::GatewayContainer;
-use crate::models::card::Card;
+pub fn embed_card(e: &mut CreateEmbed, card: &Card) {
+    e.title(&card.name);
 
-async fn mtg_help(ctx: &mut Context, msg: &Message) -> CommandResult {
-    let _ = msg.reply(ctx, "help").await;
+    // If we have card art URI's, include them.
+    if let Some(uri) = &card.image_uri {
+        e.image(&uri);
+    }
+
+    e.field("Type:", &card.type_line, true);
+
+    if let Some(mana_cost) = &card.mana_cost {
+        if !mana_cost.is_empty() {
+            e.field("Mana cost:", mana_cost, true);
+        }
+    }
+
+    if let Some(oracle_text) = &card.oracle_text {
+        // Double space the oracle text so it appears correctly
+        let spaced_oracle_text = oracle_text.replace("\n", "\n\n");
+        e.field("Oracle text:", spaced_oracle_text, false);
+    }
+
+    if let Some(flavor_text) = &card.flavor_text {
+        e.footer(|ef| {
+            ef.text(flavor_text);
+            ef
+        });
+    }
+}
+
+async fn display_card(ctx: &Context, msg: &Message, card: &Card) -> CommandResult {
+    // Create an embed for this card
+    let _ = msg
+        .channel_id
+        .send_message(ctx, |m| {
+            m.embed(|e| {
+                embed_card(e, card);
+                e
+            });
+
+            m
+        })
+        .await;
 
     Ok(())
 }
@@ -47,114 +86,39 @@ async fn display_suggestions(
     Ok(())
 }
 
-async fn display_card(ctx: &Context, msg: &Message, card: &Card) -> CommandResult {
-    // Create an embed for this card
-    let _ = msg
-        .channel_id
-        .send_message(ctx, |m| {
-            m.embed(|e| {
-                e.title(&card.name);
-
-                // If we have card art URI's, include them.
-                if let Some(uri) = &card.image_uri {
-                    e.image(&uri);
-                }
-
-                e.field("Type:", &card.type_line, true);
-
-                if let Some(mana_cost) = &card.mana_cost {
-                    if !mana_cost.is_empty() {
-                        e.field("Mana cost:", mana_cost, true);
-                    }
-                }
-
-                if let Some(oracle_text) = &card.oracle_text {
-                    // Double space the oracle text so it appears correctly
-                    let spaced_oracle_text = oracle_text.replace("\n", "\n\n");
-                    e.field("Oracle text:", spaced_oracle_text, false);
-                }
-
-                if let Some(flavor_text) = &card.flavor_text {
-                    e.footer(|ef| {
-                        ef.text(flavor_text);
-                        ef
-                    });
-                }
-
-                e
-            });
-
-            m
-        })
-        .await;
-
-    Ok(())
-}
-
-async fn mtg_random_card(ctx: &mut Context, msg: &Message) -> CommandResult {
+#[command]
+async fn mtg(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let data = ctx.data.read().await;
 
-    if let Some(gateway) = data.get::<GatewayContainer>() {
-        if let Some(card) = gateway.random().await {
-            let _ = display_card(ctx, msg, &card).await;
+    let card_store = data
+        .get::<CardStoreContainer>()
+        .expect("failed to obtain card store");
+
+    match args.current() {
+        Some("random") => {
+            display_card(ctx, msg, &card_store.random().await?).await?;
         }
-    }
+        _ => {
+            if args.current() == Some("card") {
+                args.advance();
+            }
+            let query = args.rest().to_lowercase();
 
-    Ok(())
-}
+            if let Some(card) = card_store.search(&query).await? {
+                display_card(ctx, msg, &card).await?;
+            } else {
+                let suggestions = card_store.suggestions(&query).await?;
 
-async fn mtg_card(ctx: &mut Context, msg: &Message, args: Args) -> CommandResult {
-    // our search query
-    let query = args.rest().to_lowercase();
-    let data = ctx.data.read().await;
-
-    if let Some(gateway) = data.get::<GatewayContainer>() {
-        // First, does a plain ol' search work?
-        if let Some(card) = gateway.search(&query).await {
-            return display_card(ctx, msg, &card).await;
-        } else {
-            let suggestions = gateway.suggestions(&query).await;
-
-            // If there is a single suggestion, we look that card up
-            if suggestions.len() == 1 {
-                if let Some(card) = gateway.search(&suggestions[0]).await {
-                    return display_card(ctx, msg, &card).await;
+                // If there's a single suggestion then just show it as per normal.
+                if suggestions.len() == 1 {
+                    if let Some(card) = card_store.search(&suggestions[0]).await? {
+                        display_card(ctx, msg, &card).await?;
+                    }
+                } else if !suggestions.is_empty() {
+                    display_suggestions(ctx, msg, suggestions).await?;
                 }
-            } else if !suggestions.is_empty() {
-                return display_suggestions(ctx, msg, suggestions).await;
             }
         }
-    }
-
-    Ok(())
-}
-
-async fn mtg_set(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult {
-    let _ = msg.reply(ctx, "set").await;
-
-    Ok(())
-}
-
-#[command]
-async fn mtg(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
-    if args.is_empty() {
-        // Return some help!
-        return mtg_help(ctx, msg).await;
-    }
-
-    let _ = match args.current() {
-        Some("random") => mtg_random_card(ctx, msg).await,
-        Some("card") => {
-            args.advance();
-
-            mtg_card(ctx, msg, args).await
-        }
-        Some("set") => {
-            args.advance();
-
-            mtg_set(ctx, msg, args).await
-        }
-        _ => mtg_card(ctx, msg, args).await,
     };
 
     Ok(())

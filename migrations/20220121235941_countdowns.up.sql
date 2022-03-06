@@ -1,0 +1,6 @@
+CREATE TABLE countdowns (
+    id INTEGER NOT NULL PRIMARY KEY,
+    end INTEGER NOT NULL,
+    active BOOLEAN NOT NULL,
+    guild INTEGER NOT NULL
+)

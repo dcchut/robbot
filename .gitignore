@@ -1,5 +1,7 @@
 /target
-**/*.rs.bk
-.idea
+local.db
+local.db-shm
+local.db-wal
 .env
+.idea
 robbot.db
