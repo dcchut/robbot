@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Result};
-use chrono::{DateTime, TimeZone, Utc};
+use chrono::{DateTime, Duration, TimeZone, Utc};
 use chrono_humanize::HumanTime;
 use sqlx::{Pool, Sqlite};
 use std::ops::Sub;
@@ -15,11 +15,12 @@ pub struct Countdown {
 
 impl Countdown {
     pub fn as_pretty_string(&self, current_dt: &DateTime<Utc>) -> String {
-        format!(
-            "***S{}*** is {:#}.",
-            self.id,
-            HumanTime::from(-current_dt.sub(Utc.timestamp(self.end as i64, 0)))
-        )
+        // Drop the sub-second component of the duration here so we don't end up with an
+        // absurdly accurate text representation of this duration.
+        let duration =
+            Duration::seconds((-current_dt.sub(Utc.timestamp(self.end as i64, 0))).num_seconds());
+
+        format!("***S{}*** is {:#}.", self.id, HumanTime::from(duration),)
     }
 }
 
