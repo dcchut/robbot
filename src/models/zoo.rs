@@ -1,8 +1,8 @@
+use crate::client::make_client;
 use anyhow::{Context, Result};
 use reqwest::Client as ReqClient;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
-use crate::client::make_client;
 
 #[derive(Debug, Deserialize)]
 struct Dog {

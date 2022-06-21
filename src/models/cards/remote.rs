@@ -1,7 +1,7 @@
+use crate::client::make_client;
 use crate::models::cards::RawCard;
 use anyhow::{anyhow, Result};
 use dcc_scryfall::SfClient;
-use crate::client::make_client;
 
 pub(super) struct RemoteCardGateway {
     client: SfClient,

@@ -1,12 +1,18 @@
 use crate::commands::{
-    animals::*, countdown::*, dig::*, help::*, mtg::*, probability::*, quit::*, sandboxes::*, weather::*
+    animals::*, countdown::*, dig::*, help::*, mtg::*, probability::*, quit::*, sandboxes::*,
+    weather::*,
 };
-use crate::containers::{AnimalGatewayContainer, AppInfoContainer, CardStoreContainer, CountdownStoreContainer, NominatimClientContainer, OpenWeatherMapClientContainer, RockCounterContainer, ShardManagerContainer};
+use crate::containers::{
+    AnimalGatewayContainer, AppInfoContainer, CardStoreContainer, CountdownStoreContainer,
+    NominatimClientContainer, OpenWeatherMapClientContainer, RockCounterContainer,
+    ShardManagerContainer,
+};
 use crate::models::cards::CardStore;
 use crate::models::countdowns::CountdownStore;
 use crate::models::rocks::RockCounter;
 use crate::models::zoo::AnimalGateway;
 
+use crate::models::weather::{NominatimClient, OpenWeatherMapClient};
 use anyhow::Result;
 use serde::Deserialize;
 use serenity::framework::standard::macros::group;
@@ -14,19 +20,21 @@ use serenity::framework::StandardFramework;
 use serenity::http::Http;
 use serenity::model::application::CurrentApplicationInfo;
 use serenity::model::id::UserId;
+use serenity::prelude::GatewayIntents;
 use serenity::Client;
 use sqlx::sqlite::SqlitePoolOptions;
 use sqlx::{Pool, Sqlite};
 use std::collections::HashSet;
-use crate::models::weather::{NominatimClient, OpenWeatherMapClient};
 
+mod client;
 mod commands;
 mod containers;
 mod models;
-mod client;
 
 #[group]
-#[commands(countdown, dig, dog, cat, normalcdf, py, py_raw, rust, rust_raw, quit, weather)]
+#[commands(
+    countdown, dig, dog, cat, normalcdf, py, py_raw, rust, rust_raw, quit, weather
+)]
 struct General;
 
 #[group]
@@ -58,7 +66,7 @@ async fn setup_db_pool(config: &Config) -> Result<&'static Pool<Sqlite>> {
 }
 
 async fn get_bot_info(token: &str) -> (HashSet<UserId>, CurrentApplicationInfo) {
-    let http = Http::new_with_token(token);
+    let http = Http::new(token);
 
     match http.get_current_application_info().await {
         Ok(info) => {
@@ -79,11 +87,14 @@ async fn build_client(config: &Config, pool: &'static Pool<Sqlite>) -> Client {
         .group(&MTG_GROUP)
         .help(&MY_HELP);
 
-    let client = Client::builder(&config.discord_token)
-        .framework(framework)
-        .application_id(config.discord_application_id)
-        .await
-        .expect("error creating serenity client");
+    let client = Client::builder(
+        &config.discord_token,
+        GatewayIntents::non_privileged() | GatewayIntents::MESSAGE_CONTENT,
+    )
+    .framework(framework)
+    .application_id(config.discord_application_id)
+    .await
+    .expect("error creating serenity client");
 
     // Serenity could be using TypeID's for this purpose but instead requires a wrapper
     // struct implementing TypeMapKey.  Unclear what problem motivated this choice.
@@ -96,7 +107,9 @@ async fn build_client(config: &Config, pool: &'static Pool<Sqlite>) -> Client {
         data.insert::<AnimalGatewayContainer>(AnimalGateway::new());
         data.insert::<ShardManagerContainer>(client.shard_manager.clone());
         data.insert::<NominatimClientContainer>(NominatimClient::new());
-        data.insert::<OpenWeatherMapClientContainer>(OpenWeatherMapClient::new(&config.openweather_api_key));
+        data.insert::<OpenWeatherMapClientContainer>(OpenWeatherMapClient::new(
+            &config.openweather_api_key,
+        ));
     }
 
     client

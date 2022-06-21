@@ -1,10 +1,10 @@
+use crate::models::weather::{NominatimClient, OpenWeatherMapClient};
 use crate::{AnimalGateway, CardStore, CountdownStore, RockCounter};
 use serenity::client::bridge::gateway::ShardManager;
 use serenity::model::application::CurrentApplicationInfo;
 use serenity::prelude::TypeMapKey;
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use crate::models::weather::{NominatimClient, OpenWeatherMapClient};
 
 pub(crate) struct ShardManagerContainer;
 

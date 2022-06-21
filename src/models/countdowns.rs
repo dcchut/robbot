@@ -58,22 +58,22 @@ impl<'pool> CountdownStore<'pool> {
     ) -> Result<Vec<Countdown>> {
         sqlx::query_as!(
             Countdown,
-            "
-        SELECT id, end, active, guild
+            r#"
+        SELECT id as "id!", end as "end!", active as "active!", guild as "guild!"
         FROM countdowns
         WHERE end >= ?
         AND guild = ?
         AND active = true
         ORDER BY end ASC, id ASC
         LIMIT ?
-            ",
+            "#,
             timestamp,
             guild_id,
             limit,
         )
         .fetch_all(self.pool)
         .await
-        .map_err(|_| anyhow!("faied to get countdowns after {}", timestamp))
+        .map_err(|_| anyhow!("failed to get countdowns after {}", timestamp))
     }
 
     pub async fn get_first_after(

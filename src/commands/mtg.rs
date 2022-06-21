@@ -24,7 +24,7 @@ pub fn embed_card(e: &mut CreateEmbed, card: &Card) {
 
     if let Some(oracle_text) = &card.oracle_text {
         // Double space the oracle text so it appears correctly
-        let spaced_oracle_text = oracle_text.replace("\n", "\n\n");
+        let spaced_oracle_text = oracle_text.replace('\n', "\n\n");
         e.field("Oracle text:", spaced_oracle_text, false);
     }
 

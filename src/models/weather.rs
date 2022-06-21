@@ -1,8 +1,8 @@
-use anyhow::{Result};
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-use std::time::Duration;
 use crate::client::make_client;
+use std::time::Duration;
 
 type RateLimiter = governor::RateLimiter<
     governor::state::NotKeyed,
@@ -12,9 +12,13 @@ type RateLimiter = governor::RateLimiter<
 >;
 
 fn rate_limiter() -> &'static RateLimiter {
-    static PS_RATE_LIMITER: once_cell::sync::OnceCell<RateLimiter> = once_cell::sync::OnceCell::new();
-    PS_RATE_LIMITER
-        .get_or_init(|| governor::RateLimiter::direct(governor::Quota::with_period(Duration::from_millis(1500)).unwrap()))
+    static PS_RATE_LIMITER: once_cell::sync::OnceCell<RateLimiter> =
+        once_cell::sync::OnceCell::new();
+    PS_RATE_LIMITER.get_or_init(|| {
+        governor::RateLimiter::direct(
+            governor::Quota::with_period(Duration::from_millis(1500)).unwrap(),
+        )
+    })
 }
 
 #[derive(Clone)]
@@ -27,7 +31,7 @@ pub struct NominatimClient {
 struct NominatimRequest {
     q: String,
     format: &'static str,
-    limit: u8
+    limit: u8,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -49,17 +53,23 @@ impl NominatimClient {
     }
 
     /// Return the coordinates associated with the given query string.
-    pub async fn search<T: Into<String>>(&self, query: T) -> Result<Option<(String, String, String)>> {
+    pub async fn search<T: Into<String>>(
+        &self,
+        query: T,
+    ) -> Result<Option<(String, String, String)>> {
         let request = NominatimRequest {
             q: query.into(),
             format: "jsonv2",
-            limit: 1
+            limit: 1,
         };
 
         self.limiter.until_ready().await;
-        let response = self.client.get("https://nominatim.openstreetmap.org/search.php")
+        let response = self
+            .client
+            .get("https://nominatim.openstreetmap.org/search.php")
             .query(&request)
-            .send().await?;
+            .send()
+            .await?;
 
         // Note: by limit=1 above we know that the last element of payload, if it exists,
         // will also be the first.
@@ -90,7 +100,7 @@ pub struct OWMMain {
 }
 
 #[derive(Clone, Debug, Deserialize)]
-pub struct OWMSys  {
+pub struct OWMSys {
     pub country: String,
 }
 
@@ -112,10 +122,9 @@ fn emoji_for_icon(icon: &str) -> &'static str {
         "11d" | "11n" => ":cloud_lightning:",
         "13d" | "13n" => ":cloud_snow:",
         "50d" | "50n" => ":fog",
-        _ => panic!("unexpected icon {}", icon)
+        _ => panic!("unexpected icon {}", icon),
     }
 }
-
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct OpenWeatherMapResponse {
@@ -125,8 +134,6 @@ pub struct OpenWeatherMapResponse {
     pub name: String,
 }
 
-
-
 impl OpenWeatherMapClient {
     pub fn new<T: Into<String>>(api_key: T) -> Self {
         Self {
@@ -135,15 +142,21 @@ impl OpenWeatherMapClient {
         }
     }
 
-    pub async fn get(&self, lat: &str, lon: &str) -> Result<Option<(OpenWeatherMapResponse, String)>> {
+    pub async fn get(
+        &self,
+        lat: &str,
+        lon: &str,
+    ) -> Result<Option<(OpenWeatherMapResponse, String)>> {
         let query = OpenWeatherMapQuery {
             lat,
             lon,
             app_id: &self.api_key,
-            units: "metric"
+            units: "metric",
         };
 
-        let response = self.client.get("https://api.openweathermap.org/data/2.5/weather")
+        let response = self
+            .client
+            .get("https://api.openweathermap.org/data/2.5/weather")
             .query(&query)
             .send()
             .await?;
