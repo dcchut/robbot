@@ -29,7 +29,7 @@ version = "0.4"
 version = "0.5"
 
 [dependencies.once_cell]
-version = "1.16"
+version = "1.17"
 
 [dependencies.probability]
 version = "0.18"
