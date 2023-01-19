@@ -28,6 +28,8 @@ jobs:
       options: --user root
     steps:
       - uses: actions/checkout@master
+      - name: Remove lockfile
+        run: rm Cargo.lock
       - name: Install sqlite3
         run: apt-get update && apt-get install -y sqlite3
       - name: Setup sqlite database for compilation
