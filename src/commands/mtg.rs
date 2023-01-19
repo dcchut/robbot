@@ -11,7 +11,7 @@ pub fn embed_card(e: &mut CreateEmbed, card: &Card) {
 
     // If we have card art URI's, include them.
     if let Some(uri) = &card.image_uri {
-        e.image(&uri);
+        e.image(uri);
     }
 
     e.field("Type:", &card.type_line, true);

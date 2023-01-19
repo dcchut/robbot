@@ -18,7 +18,7 @@ impl Countdown {
         // Drop the sub-second component of the duration here so we don't end up with an
         // absurdly accurate text representation of this duration.
         let duration =
-            Duration::seconds((-current_dt.sub(Utc.timestamp(self.end as i64, 0))).num_seconds());
+            Duration::seconds((-current_dt.sub(Utc.timestamp(self.end, 0))).num_seconds());
 
         format!("***S{}*** is {:#}.", self.id, HumanTime::from(duration),)
     }

@@ -104,7 +104,7 @@ async fn add_countdown(ctx: &Context, msg: &Message, mut args: Args) -> CommandR
                 .expect("failed to obtain countdown store");
 
             countdown_store
-                .insert(dt.timestamp() as i64, guild_id)
+                .insert(dt.timestamp(), guild_id)
                 .await
                 .expect("failed to insert countdown");
 
