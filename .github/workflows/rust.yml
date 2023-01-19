@@ -24,10 +24,20 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ekidd/rust-musl-builder:latest
+      # Workaround for https://github.com/actions/checkout/issues/1014
+      options: --user root
     steps:
       - uses: actions/checkout@master
+      - name: Remove lockfile
+        run: rm Cargo.lock
+      - name: Install sqlite3
+        run: apt-get update && apt-get install -y sqlite3
+      - name: Setup sqlite database for compilation
+        run: sqlite3 robbot.db < schema.sql
       - name: Build binary
         run: cargo build --release --bin robbot
+        env:
+          DATABASE_URL: sqlite:robbot.db
       - uses: actions/upload-artifact@master
         with:
           name: robbot
