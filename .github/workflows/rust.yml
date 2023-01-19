@@ -19,3 +19,16 @@ jobs:
         run: cargo fmt -- --check && cargo check && cargo clippy -- -Dwarnings
         env:
           DATABASE_URL: sqlite:robbot.db
+
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: ekidd/rust-musl-builder:latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Build binary
+        run: cargo build --release --bin robbot
+      - uses: actions/upload-artifact@master
+        with:
+          name: robbot
+          path: target/release/robbot
