@@ -32,7 +32,7 @@ impl<'pool> RockCounter<'pool> {
         )
         .fetch_optional(&mut tx)
         .await
-        .with_context(|| format!("failed to get count for user {}", user_id))?
+        .with_context(|| format!("failed to get count for user {user_id}"))?
         .unwrap_or(RockCount { user_id, count: 0 });
 
         rock_count.count += 1;
@@ -44,7 +44,7 @@ impl<'pool> RockCounter<'pool> {
         )
         .execute(&mut tx)
         .await
-        .with_context(|| format!("failed to update rock count for user {}", user_id))?;
+        .with_context(|| format!("failed to update rock count for user {user_id}"))?;
 
         tx.commit().await?;
 

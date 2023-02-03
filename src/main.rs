@@ -74,7 +74,7 @@ async fn get_bot_info(token: &str) -> (HashSet<UserId>, CurrentApplicationInfo) 
             owners.insert(info.owner.id);
             (owners, info)
         }
-        Err(why) => panic!("Could not access application info: {:?}", why),
+        Err(why) => panic!("Could not access application info: {why:?}"),
     }
 }
 
@@ -133,7 +133,7 @@ async fn main() -> Result<()> {
     });
 
     if let Err(why) = client.start().await {
-        eprintln!("client error:  {:?}", why)
+        eprintln!("client error:  {why:?}")
     }
 
     Ok(())

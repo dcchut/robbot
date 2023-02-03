@@ -122,7 +122,7 @@ fn emoji_for_icon(icon: &str) -> &'static str {
         "11d" | "11n" => ":cloud_lightning:",
         "13d" | "13n" => ":cloud_snow:",
         "50d" | "50n" => ":fog",
-        _ => panic!("unexpected icon {}", icon),
+        _ => panic!("unexpected icon {icon}"),
     }
 }
 

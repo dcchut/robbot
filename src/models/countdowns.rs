@@ -75,7 +75,7 @@ impl<'pool> CountdownStore<'pool> {
         )
         .fetch_all(self.pool)
         .await
-        .map_err(|_| anyhow!("failed to get countdowns after {}", timestamp))
+        .map_err(|_| anyhow!("failed to get countdowns after {timestamp}"))
     }
 
     pub async fn get_first_after(

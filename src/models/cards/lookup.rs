@@ -78,7 +78,7 @@ impl<'pool> LocalCardLookup<'pool> {
         )
             .fetch_optional(self.pool)
             .await
-            .with_context(|| format!("failed to get card matching query {}", query))
+            .with_context(|| format!("failed to get card matching query {query}"))
     }
 
     pub async fn query<S: AsRef<str>>(&self, query: S) -> Result<Option<Card>> {
