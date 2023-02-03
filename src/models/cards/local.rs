@@ -24,7 +24,7 @@ impl<'pool> LocalCardStorage<'pool> {
         )
         .fetch_one(self.pool)
         .await
-        .with_context(|| format!("failed to get card  {}", id))
+        .with_context(|| format!("failed to get card {id}"))
     }
 
     /// Gets or inserts the given card into the store.
