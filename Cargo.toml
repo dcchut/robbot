@@ -53,7 +53,7 @@ version = "0.6"
 features = ["runtime-tokio-rustls", "sqlite", "macros", "chrono"]
 
 [dependencies.tokio]
-version = "1.27"
+version = "1.28"
 features = ["macros", "rt-multi-thread", "signal"]
 
 [dependencies.tracing]
