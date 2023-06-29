@@ -34,7 +34,7 @@ jobs:
       - name: Remove lockfile
         run: rm Cargo.lock
       - name: Install sqlite3
-        run: apt-get update && apt-get install -y sqlite3
+        run: sudo apt-get update && sudo apt-get install -y sqlite3
       - name: Setup sqlite database for compilation
         run: sqlite3 robbot.db < schema.sql
       - name: Build binary
