@@ -21,20 +21,19 @@ jobs:
           DATABASE_URL: sqlite:robbot.db
 
   build:
-    runs-on: ubuntu-latest
-    # container:
-      # image: ekidd/rust-musl-builder:latest
-      # Workaround for https://github.com/actions/checkout/issues/1014
-      # options: --user root
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        rust: [stable]
+    
     steps:
       - uses: hecrj/setup-rust-action@v1
         with:
-          rust-version: stable
+          rust-version: ${{ matrix.rust }}
       - uses: actions/checkout@master
       - name: Remove lockfile
         run: rm Cargo.lock
-      - name: Install sqlite3
-        run: sudo apt-get update && sudo apt-get install -y sqlite3
       - name: Setup sqlite database for compilation
         run: sqlite3 robbot.db < schema.sql
       - name: Build binary
