@@ -42,7 +42,7 @@ impl<'pool> RockCounter<'pool> {
             rock_count.user_id,
             rock_count.count
         )
-        .execute(&mut tx)
+        .execute(&mut *tx)
         .await
         .with_context(|| format!("failed to update rock count for user {user_id}"))?;
 
