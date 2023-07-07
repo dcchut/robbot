@@ -61,7 +61,7 @@ impl<'pool> LocalCardStorage<'pool> {
             card.flavor_text,
             card.image_uri
         )
-        .execute(&mut tx)
+        .execute(&mut *tx)
         .await
         .map(|result| result.last_insert_rowid())
         .with_context(|| "failed to insert card")?;
