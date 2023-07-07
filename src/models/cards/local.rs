@@ -42,7 +42,7 @@ impl<'pool> LocalCardStorage<'pool> {
             ",
             card_name
         )
-        .fetch_optional(&mut tx)
+        .fetch_optional(&mut *tx)
         .await?
         {
             return Ok(card);
