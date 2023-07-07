@@ -30,7 +30,7 @@ impl<'pool> RockCounter<'pool> {
             "SELECT user_id, count FROM rocks WHERE user_id = ?",
             user_id
         )
-        .fetch_optional(&mut tx)
+        .fetch_optional(&mut *tx)
         .await
         .with_context(|| format!("failed to get count for user {user_id}"))?
         .unwrap_or(RockCount { user_id, count: 0 });
